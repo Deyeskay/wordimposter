@@ -290,7 +290,7 @@
           <div class="row">
             <button class="btn-ghost" id="btnCopyPrompt">Copy prompt for ChatGPT (generate JSON)</button>
             <button class="btn-warn" id="btnLoadJson">Load JSON (host)</button>
-            <input type="file" id="fileJson" accept="application/json" style="display:none;">
+            <!-- <input type="file" id="fileJson" accept="application/json" style="display:none;"> -->
           </div>
 
           <div class="row">
@@ -455,7 +455,334 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Paste JSON Modal -->
+<div class="revealOverlay" id="jsonModal">
+  <div class="revealCard" style="text-align:left;">
+    <p class="revealTitle">Paste words JSON</p>
+
+    <textarea id="txtJsonPaste" placeholder='Paste JSON here...'></textarea>
+
+    <div class="row" style="margin-top:12px;">
+      <button class="btn-accent" id="btnJsonLoadConfirm">Load JSON</button>
+      <button class="btn-ghost" id="btnJsonCancel">Cancel</button>
+    </div>
+
+    <p class="small" style="margin-top:10px;">
+      Tip: Use <b>Copy prompt for ChatGPT</b> to generate the correct JSON format.
+    </p>
+  </div>
+</div>
 <script>
+
+const DEFAULT_WORDS_JSON = 
+{
+"title": "Ultimate Word Imposter Sets",
+"categories": [
+{
+"name": "Fruits",
+"words": [
+"Apple",
+"Banana",
+"Orange",
+"Mango",
+"Pineapple",
+"Strawberry",
+"Blueberry",
+"Grapes",
+"Watermelon",
+"Peach",
+"Pear",
+"Cherry",
+"Kiwi",
+"Papaya",
+"Lemon",
+"Lime",
+"Coconut",
+"Pomegranate",
+"Raspberry",
+"Blackberry"
+]
+},
+{
+"name": "Jobs",
+"words": [
+"Doctor",
+"Nurse",
+"Teacher",
+"Professor",
+"Engineer",
+"Developer",
+"Designer",
+"Artist",
+"Musician",
+"Chef",
+"Baker",
+"Pilot",
+"Flight Attendant",
+"Plumber",
+"Electrician",
+"Carpenter",
+"Mechanic",
+"Accountant",
+"Lawyer",
+"Paralegal"
+]
+},
+{
+"name": "Animals",
+"words": [
+"Dog",
+"Cat",
+"Lion",
+"Tiger",
+"Elephant",
+"Giraffe",
+"Zebra",
+"Horse",
+"Cow",
+"Sheep",
+"Goat",
+"Pig",
+"Monkey",
+"Gorilla",
+"Kangaroo",
+"Koala",
+"Panda",
+"Bear",
+"Wolf",
+"Fox"
+]
+},
+{
+"name": "Sports",
+"words": [
+"Soccer",
+"Basketball",
+"Baseball",
+"Football",
+"Hockey",
+"Tennis",
+"Badminton",
+"Volleyball",
+"Cricket",
+"Rugby",
+"Golf",
+"Boxing",
+"Wrestling",
+"Swimming",
+"Surfing",
+"Skateboarding",
+"Snowboarding",
+"Cycling",
+"Running",
+"Track and Field"
+]
+},
+{
+"name": "Foods",
+"words": [
+"Pizza",
+"Burger",
+"Sandwich",
+"Tacos",
+"Burrito",
+"Sushi",
+"Ramen",
+"Pasta",
+"Spaghetti",
+"Lasagna",
+"Fried Rice",
+"Noodles",
+"Salad",
+"Soup",
+"Stew",
+"Curry",
+"Dumplings",
+"Pancakes",
+"Waffles",
+"Omelet"
+]
+},
+{
+"name": "Countries",
+"words": [
+"United States",
+"Canada",
+"Mexico",
+"Brazil",
+"Argentina",
+"United Kingdom",
+"France",
+"Germany",
+"Italy",
+"Spain",
+"Portugal",
+"Netherlands",
+"Belgium",
+"Switzerland",
+"Sweden",
+"Norway",
+"Denmark",
+"Finland",
+"Poland",
+"Greece"
+]
+},
+{
+"name": "Tech Gadgets",
+"words": [
+"Smartphone",
+"Tablet",
+"Laptop",
+"Desktop Computer",
+"Smartwatch",
+"Fitness Tracker",
+"Wireless Earbuds",
+"Bluetooth Speaker",
+"Game Console",
+"VR Headset",
+"Drone",
+"Action Camera",
+"Webcam",
+"Microphone",
+"Mechanical Keyboard",
+"Gaming Mouse",
+"Router",
+"Modem",
+"Power Bank",
+"USB Drive"
+]
+},
+{
+"name": "Apps and Platforms",
+"words": [
+"YouTube",
+"Netflix",
+"Spotify",
+"TikTok",
+"Instagram",
+"Snapchat",
+"Discord",
+"WhatsApp",
+"Telegram",
+"Reddit",
+"Twitch",
+"Zoom",
+"Google Maps",
+"Gmail",
+"Chrome Browser",
+"Apple Music",
+"SoundCloud",
+"Pinterest",
+"Canva",
+"Notion"
+]
+},
+{
+"name": "Music Genres",
+"words": [
+"Pop",
+"Rock",
+"Hip Hop",
+"R&B",
+"Jazz",
+"Blues",
+"Classical",
+"Electronic",
+"EDM",
+"House",
+"Techno",
+"Trance",
+"Dubstep",
+"Country",
+"Folk",
+"Indie",
+"Alternative",
+"Metal",
+"Punk",
+"Reggae"
+]
+},
+{
+"name": "Vehicles",
+"words": [
+"Car",
+"Sedan",
+"SUV",
+"Hatchback",
+"Coupe",
+"Convertible",
+"Pickup Truck",
+"Van",
+"Minivan",
+"Bus",
+"Coach Bus",
+"Motorcycle",
+"Scooter",
+"Bicycle",
+"Electric Bike",
+"Skateboard",
+"Longboard",
+"Train",
+"Subway",
+"Tram"
+]
+},
+{
+"name": "Household Items",
+"words": [
+"Chair",
+"Table",
+"Sofa",
+"Couch",
+"Bed",
+"Mattress",
+"Pillow",
+"Blanket",
+"Lamp",
+"Light Bulb",
+"Bookshelf",
+"Cabinet",
+"Drawer",
+"Wardrobe",
+"Mirror",
+"Clock",
+"Rug",
+"Carpet",
+"Curtains",
+"Door Mat"
+]
+},
+{
+"name": "Superheroes",
+"words": [
+"Superman",
+"Batman",
+"Spider-Man",
+"Iron Man",
+"Captain America",
+"Thor",
+"Hulk",
+"Black Widow",
+"Hawkeye",
+"Wonder Woman",
+"Flash",
+"Aquaman",
+"Doctor Strange",
+"Black Panther",
+"Ant-Man",
+"Wasp",
+"Deadpool",
+"Wolverine",
+"Professor X",
+"Vision"
+]
+}
+]
+};
+
+
+
 /* =========================
    1) Utilities + UI helpers
    ========================= */
@@ -560,17 +887,29 @@ function saveDatasetToLocal(){
     localStorage.setItem("wi_dataset", JSON.stringify(state.dataset));
   }catch(e){}
 }
+
 function loadDatasetFromLocal(){
   try{
-    const t = localStorage.getItem("wi_dataset");
-    if(!t) return;
-    const parsed = JSON.parse(t);
-    if(validateDataset(parsed).ok){
-      state.dataset = parsed;
-      updateDatasetUI();
+    const saved = localStorage.getItem("wi_dataset");
+
+    if(saved){
+      const parsed = JSON.parse(saved);
+      if(validateDataset(parsed).ok){
+        state.dataset = parsed;
+        updateDatasetUI();
+        return;
+      }
     }
-  }catch(e){}
+
+    // Fallback → load default sample JSON
+    state.dataset = DEFAULT_WORDS_JSON;
+    updateDatasetUI();
+  }catch(e){
+    state.dataset = DEFAULT_WORDS_JSON;
+    updateDatasetUI();
+  }
 }
+
 
 /* ============================
    4) Dataset validation + UI
@@ -1462,6 +1801,48 @@ $("btnLoadJson").addEventListener("click", ()=>{
   $("fileJson").click();
 });
 
+function openJsonModal(){
+  $("txtJsonPaste").value = "";
+  $("jsonModal").classList.add("show");
+  $("txtJsonPaste").focus();
+}
+
+function closeJsonModal(){
+  $("jsonModal").classList.remove("show");
+}
+
+$("btnLoadJson").addEventListener("click", openJsonModal);
+$("btnJsonCancel").addEventListener("click", closeJsonModal);
+
+
+$("btnJsonLoadConfirm").addEventListener("click", ()=>{
+  const text = ($("txtJsonPaste").value || "").trim();
+  if(!text){
+    toast("Paste JSON first");
+    return;
+  }
+
+  const parsed = safeJsonParse(text);
+  if(!parsed.ok){
+    toast("Invalid JSON: " + parsed.err);
+    return;
+  }
+
+  const v = validateDataset(parsed.data);
+  if(!v.ok){
+    toast("Dataset error: " + v.msg);
+    return;
+  }
+
+  state.dataset = parsed.data;
+  saveDatasetToLocal();
+  updateDatasetUI();
+  closeJsonModal();
+  toast("JSON loaded ✅");
+});
+
+
+/*
 $("fileJson").addEventListener("change", async (e)=>{
   const f = e.target.files?.[0];
   if(!f) return;
@@ -1484,6 +1865,7 @@ $("fileJson").addEventListener("change", async (e)=>{
   updateDatasetUI();
   toast("JSON loaded ✅");
 });
+*/
 
 /* ===========================
    12) Wire UI events
