@@ -1,0 +1,1570 @@
+<!doctype html>
+<html lang="en">
+<head>  
+   <meta charset="utf-8" />
+  <meta name="description" content="SK Games — Word Imposter. A fast-paced party game where one hidden imposter has no word, everyone else does—and only face-to-face deduction reveals the truth.">
+  <meta property="og:title" content="SK Games — Word Imposter">
+  <meta property="og:description" content="A compact hub of web games and apps by Sashi - ‘Deyeskay’ D S K.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://deyeskay.github.io/hub/">
+  <meta property="og:image" content="https://deyeskay.github.io/hub/sk-icon.png">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" type="image/svg+xml" href="https://deyeskay.github.io/hub/favicon.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0c0c0f"> 
+  <title>SK Games | Word Imposter</title>
+  <!-- PeerJS (CDN) -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#121a33;
+      --card2:#0f1730;
+      --muted:#9aa6c6;
+      --text:#eaf0ff;
+      --accent:#7cffd1;
+      --warn:#ffcf5c;
+      --danger:#ff5c8a;
+      --ok:#6ee7ff;
+      --border:rgba(255,255,255,.10);
+      --shadow: 0 12px 40px rgba(0,0,0,.35);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: radial-gradient(1200px 800px at 20% -10%, rgba(124,255,209,.20), transparent 60%),
+                  radial-gradient(900px 700px at 90% 10%, rgba(110,231,255,.18), transparent 55%),
+                  radial-gradient(900px 700px at 50% 120%, rgba(255,92,138,.12), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .app{ width:min(980px, 100%); }
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 16px; border:1px solid var(--border); border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(18,26,51,.82), rgba(15,23,48,.70));
+      box-shadow: var(--shadow);
+      margin-bottom:12px;
+    }
+    .brand{ display:flex; gap:10px; align-items:center; }
+    .logo{
+      width:36px;height:36px;border-radius:12px;
+	  background: url(https://deyeskay.github.io/hub/sk-download.svg);
+      /*background: conic-gradient(from 180deg, var(--accent), var(--ok), var(--danger), var(--warn), var(--accent));*/
+      box-shadow: 0 0 0 3px rgba(255,255,255,.06);
+    }
+    .brand h1{ font-size:16px; margin:0; letter-spacing:.2px; }
+    .brand p{ margin:0; color:var(--muted); font-size:12px; }
+    .pill{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:8px 10px; border-radius:999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      font-size:12px; color:var(--muted);
+    }
+    .dot{ width:8px;height:8px;border-radius:50%; background: var(--danger); box-shadow: 0 0 18px rgba(255,92,138,.35); }
+    .dot.ok{ background: var(--accent); box-shadow: 0 0 18px rgba(124,255,209,.35); }
+
+    .grid{ display:grid; gap:12px; grid-template-columns: 1.1fr .9fr; }
+    @media (max-width: 860px){ .grid{ grid-template-columns: 1fr; } }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(18,26,51,.82), rgba(15,23,48,.70));
+      box-shadow: var(--shadow);
+      padding:16px;
+    }
+    .card h2{ margin:0 0 8px; font-size:14px; letter-spacing:.2px; }
+    .card p{ margin:0 0 12px; color:var(--muted); font-size:12px; line-height:1.45; }
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; }
+    .row > *{ flex:1; }
+    .row.tight > *{ flex:0 0 auto; }
+
+    input, select, button, textarea{
+      width:100%;
+      background: rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      color:var(--text);
+      border-radius: 14px;
+      padding:12px 12px;
+      outline:none;
+      font-size:14px;
+    }
+    input::placeholder, textarea::placeholder{ color: rgba(234,240,255,.45); }
+    textarea{ min-height: 120px; resize: vertical; }
+    button{
+      cursor:pointer;
+      font-weight:600;
+      transition: transform .08s ease, background .15s ease, border .15s ease;
+    }
+    button:active{ transform: translateY(1px); }
+    .btn-accent{
+      background: rgba(124,255,209,.12);
+      border-color: rgba(124,255,209,.28);
+    }
+    .btn-warn{
+      background: rgba(255,207,92,.12);
+      border-color: rgba(255,207,92,.28);
+    }
+    .btn-danger{
+      background: rgba(255,92,138,.12);
+      border-color: rgba(255,92,138,.28);
+    }
+    .btn-ghost{
+      background: rgba(255,255,255,.02);
+    }
+    .small{ font-size:12px; color:var(--muted); }
+
+    .section{ display:none; }
+    .section.active{ display:block; }
+	.font-small ,.font-small li {
+		font-size: 10px;
+	}
+    .list{
+      margin:10px 0 0;
+      padding:0;
+      list-style:none;
+      border:1px solid var(--border);
+      border-radius: 14px;
+      overflow:hidden;
+    }
+    .list li{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 12px;
+      background: rgba(255,255,255,.03);
+      border-top:1px solid rgba(255,255,255,.06);
+    }
+    .list li:first-child{ border-top:none; }
+    .tag{
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--muted);
+      background: rgba(255,255,255,.02);
+    }
+    .tag.host{ border-color: rgba(124,255,209,.28); color: rgba(124,255,209,.95); background: rgba(124,255,209,.08); }
+    .tag.me{ border-color: rgba(110,231,255,.28); color: rgba(110,231,255,.95); background: rgba(110,231,255,.08); }
+    .tag.off{ border-color: rgba(255,92,138,.28); color: rgba(255,92,138,.95); background: rgba(255,92,138,.08); }
+
+    .divider{ height:1px; background: rgba(255,255,255,.10); margin:12px 0; }
+
+    /* Full-screen reveal */
+    .revealOverlay{
+      position:fixed; inset:0;
+      background: radial-gradient(1200px 800px at 50% 25%, rgba(124,255,209,.16), transparent 55%),
+                  radial-gradient(900px 700px at 50% 85%, rgba(110,231,255,.16), transparent 55%),
+                  rgba(0,0,0,.72);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
+      z-index:9999;
+    }
+    .revealOverlay.show{ display:flex; }
+    .revealCard{
+      width:min(720px, 100%);
+      border:1px solid var(--border);
+      border-radius: 26px;
+      background: linear-gradient(180deg, rgba(18,26,51,.92), rgba(15,23,48,.88));
+      box-shadow: 0 22px 70px rgba(0,0,0,.5);
+      padding:18px;
+      text-align:center;
+    }
+    .revealTitle{ font-size:12px; color:var(--muted); margin:0 0 8px; }
+    .revealWord{
+      margin:0;
+      font-size: clamp(32px, 7vw, 64px);
+      letter-spacing:.6px;
+      font-weight:800;
+      word-break:break-word;
+    }
+    .revealRole{
+      margin:10px 0 0;
+      font-size:13px;
+      color:var(--muted);
+    }
+    .hint{ margin:12px 0 0; font-size:12px; color: rgba(234,240,255,.62); }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.6);
+      border:1px solid rgba(255,255,255,.14);
+      padding:10px 12px;
+      border-radius: 999px;
+      color: rgba(234,240,255,.92);
+      font-size: 12px;
+      display:none;
+      z-index:99999;
+    }
+    .toast.show{ display:block; }
+  </style>
+</head>
+
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <h1>Word Imposter</h1>
+        <p>A fast-paced party game where one hidden imposter has no word, everyone else does—and only face-to-face deduction reveals the truth. <br>(No in-app chat. Reveal + vote. Discuss offline.)</p>
+      </div>
+    </div>
+    <div class="pill" id="statusPill">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Not connected</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: Main screens -->
+    <div class="card">
+      <!-- HOME -->
+      <div class="section active" id="secHome">
+        <h2>Join or Host</h2>
+        <p>Host creates a <b>4-digit room</b> and also plays. Players join with the same code. Host can load words JSON and start rounds.</p>
+
+        <div class="row">
+          <div>
+            <label class="small">Your name</label>
+            <input id="inpName" placeholder="e.g., Mohith" maxlength="20" />
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row">
+          <button class="btn-accent" id="btnHost">Host a room (create 4-digit ID)</button>
+        </div>
+
+        <div class="row">
+          <div>
+            <label class="small">Room ID (4 digits)</label>
+            <input id="inpRoom" placeholder="e.g., 4821" inputmode="numeric" maxlength="4" />
+          </div>
+          <div style="flex:0.6">
+            <label class="small">&nbsp;</label>
+            <button id="btnJoin" class="btn-ghost">Join</button>
+          </div>
+        </div>
+
+        <p class="small">
+          Note: If a room ID is already taken, host must choose a different code.
+        </p>
+      </div>
+
+      <!-- LOBBY -->
+      <div class="section" id="secLobby">
+        <h2>Lobby</h2>
+        <p id="lobbyInfo" class="small">—</p>
+
+        <div class="row">
+          <button class="btn-accent" id="btnStartRound">Start Round</button>
+          <button class="btn-ghost" id="btnLeaveRoom">Leave Room</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <h2>Players</h2>
+        <ul class="list" id="playerList"></ul>
+
+        <div class="divider"></div>
+
+        <div id="hostControls" style="display:none;">
+          <h2>Host Controls</h2>
+          <p class="small">Load words JSON, generate a ChatGPT prompt to create JSON, and pick modes.</p>
+
+          <div class="row">
+            <button class="btn-ghost" id="btnCopyPrompt">Copy prompt for ChatGPT (generate JSON)</button>
+            <button class="btn-warn" id="btnLoadJson">Load JSON (host)</button>
+            <input type="file" id="fileJson" accept="application/json" style="display:none;">
+          </div>
+
+          <div class="row">
+            <div>
+              <label class="small">Imposter word mode</label>
+              <select id="selImposterMode">
+                <option value="blank">Imposter gets “???” (recommended)</option>
+                <option value="different">Imposter gets a different word (same category)</option>
+              </select>
+            </div>
+            <div>
+              <label class="small">Category selection</label>
+              <select id="selCategory">
+                <option value="random">Random category</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label class="small">Loaded dataset summary</label>
+              <textarea id="txtDataset" readonly placeholder="No JSON loaded yet."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROUND -->
+      <div class="section" id="secRound">
+        <h2>Round</h2>
+        <p class="small" id="roundInfo">—</p>
+
+        <div class="row">
+          <button class="btn-accent" id="btnRevealMine">Reveal My Word</button>
+          <button class="btn-ghost" id="btnHideReveal">Hide (if open)</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div id="hostRoundControls" style="display:none;">
+          <h2>Host Controls (Round)</h2>
+          <p class="small">Open voting when the in-person discussion is done.</p>
+          <div class="row">
+            <button class="btn-warn" id="btnOpenVoting">Open Voting</button>
+            <button class="btn-ghost" id="btnBackToLobby">Back to Lobby (cancel round)</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h2>Players</h2>
+        <ul class="list" id="playerListRound"></ul>
+      </div>
+
+      <!-- VOTE -->
+      <div class="section" id="secVote">
+        <h2>Vote</h2>
+        <p class="small" id="voteInfo">Select who you think is the imposter. One vote per player.</p>
+
+        <div class="row">
+          <div>
+            <label class="small">Vote for</label>
+            <select id="selVote"></select>
+          </div>
+          <div style="flex:0.7">
+            <label class="small">&nbsp;</label>
+            <button class="btn-accent" id="btnSubmitVote">Submit Vote</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div id="hostVoteControls" style="display:none;">
+          <h2>Host Controls (Voting)</h2>
+          <p class="small">When everyone has voted, reveal results.</p>
+          <div class="row">
+            <button class="btn-warn" id="btnRevealResults">Reveal Results</button>
+            <button class="btn-ghost" id="btnCloseVoting">Close Voting</button>
+          </div>
+          <p class="small" id="voteProgress">—</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <h2>Players</h2>
+        <ul class="list" id="playerListVote"></ul>
+      </div>
+
+      <!-- RESULTS -->
+      <div class="section" id="secResults">
+        <h2>Results</h2>
+        <p class="small" id="resultsSummary">—</p>
+
+        <div class="divider"></div>
+        <h2>Vote Tally</h2>
+        <ul class="list" id="tallyList"></ul>
+
+        <div class="divider"></div>
+
+        <div class="row">
+          <button class="btn-accent" id="btnNextRound">Next Round</button>
+          <button class="btn-ghost" id="btnResultsToLobby">Back to Lobby</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Helpers / quick instructions -->
+    <div class="card">
+      <h2>How to Play</h2>
+      <!-- <p>
+        This app uses PeerJS for peer-to-peer connections. The host creates a room with ID <code>####</code>.
+        Players join and connect to the host. The host is still a normal player in rounds.
+      </p> -->
+
+	 <ul class="font-small">
+	 <li>One player creates a room and shares the 4-digit Room ID.</li><li>
+	All players join using the Room ID and their name.</li><li>
+	The host starts a round — one player is secretly chosen as the Imposter.</li>
+	
+	<li>Everyone taps Reveal My Word on their phone:</li>
+	-Genuine players see the same secret word.<br>
+	-The Imposter sees “???” (no word).<br>
+	<li>Players discuss in person to figure out who the Imposter is.</li>
+	
+	<li>When ready, the host opens Voting.</li><li>
+	Each player votes for who they think is the Imposter.</li><li>
+	Results are revealed — find out who won!</li>
+	 </ul>
+	 
+      <div class="divider"></div>
+
+		<div style="display:none">
+      <h2>JSON format (expected)</h2>
+      <p class="small">Your JSON should look like this (simple & flexible):</p>
+      <textarea readonly id="txtSchema"></textarea>
+
+      <div class="divider"></div>
+	  </div>
+
+      <h2>Tips</h2>
+      <ul class="small" style="margin:0; padding-left:18px; color:var(--muted); line-height:1.55;">
+        <li>Use <b>Imposter = “???”</b> mode for the cleanest gameplay.</li>
+        <li>Host loads JSON once; it’s used for all rounds.</li>
+        <li>Discussion happens offline; open voting when ready.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Full screen reveal overlay -->
+<div class="revealOverlay" id="revealOverlay">
+  <div class="revealCard">
+    <p class="revealTitle" id="revealTitle">Your secret</p>
+    <h1 class="revealWord" id="revealWord">—</h1>
+    <p class="revealRole" id="revealRole">—</p>
+    <p class="hint">Tap “Hide” or press Esc to quickly hide.</p>
+    <div class="row tight" style="justify-content:center; margin-top:12px;">
+      <button class="btn-ghost" style="width:auto; padding:10px 14px;" id="btnHideReveal2">Hide</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================
+   1) Utilities + UI helpers
+   ========================= */
+const $ = (id) => document.getElementById(id);
+
+function toast(msg, ms=2200){
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), ms);
+}
+
+function showSection(secId){
+  const secs = ["secHome","secLobby","secRound","secVote","secResults"];
+  for (const s of secs) $(s).classList.toggle("active", s === secId);
+}
+
+function setStatus(connected, text){
+  $("statusDot").classList.toggle("ok", !!connected);
+  $("statusText").textContent = text;
+}
+
+function clampRoomDigits(v){
+  return (v || "").replace(/\D/g,"").slice(0,4);
+}
+
+function randInt(min, max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function pickRandom(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function safeJsonParse(text){
+  try { return { ok:true, data: JSON.parse(text) }; }
+  catch(e){ return { ok:false, err: e?.message || "Invalid JSON" }; }
+}
+
+/* =======================================
+   2) Required JSON schema + prompt builder
+   ======================================= */
+const EXPECTED_SCHEMA = {
+  "title": "Word Sets (any name)",
+  "categories": [
+    { "name": "Fruits", "words": ["Apple","Mango","Banana","Grapes"] },
+    { "name": "Jobs", "words": ["Doctor","Teacher","Chef","Pilot"] }
+  ]
+};
+
+$("txtSchema").value = JSON.stringify(EXPECTED_SCHEMA, null, 2);
+
+function buildChatGPTPrompt(){
+  return [
+    "You are generating a JSON dataset for a browser-based 'Word Imposter' party game.",
+    "",
+    "Output MUST be valid JSON only (no markdown, no explanation).",
+    "",
+    "Required JSON schema:",
+    JSON.stringify(EXPECTED_SCHEMA, null, 2),
+    "",
+    "Rules:",
+    "1) Create 12 to 20 categories.",
+    "2) Each category must have 18 to 35 unique words.",
+    "3) Words should be common, easy-to-understand, single or short phrases (max 2-3 words).",
+    "4) Avoid offensive/NSFW content.",
+    "5) Ensure no duplicate words inside a category.",
+    "",
+    "Optional style:",
+    "- Mix easy + medium difficulty categories.",
+    "- Include modern Gen-Z friendly categories (tech, apps, pop culture) but keep words safe.",
+    "",
+    "Return ONLY the JSON."
+  ].join("\n");
+}
+
+/* ===========================
+   3) Global app state (client)
+   =========================== */
+const state = {
+  isHost: false,
+  myName: "",
+  myPeerId: "",
+  roomCode: "",
+  roomPeerId: "",
+
+  peer: null,           // PeerJS Peer instance
+  hostConn: null,       // for joiners: DataConnection to host
+  conns: new Map(),     // for host: peerId -> DataConnection
+
+  // players array is authoritative on host, mirrored on joiners
+  players: [],          // {id, name, isHost, connected, hasVoted, voteFor}
+  phase: "home",        // home | lobby | round | vote | results
+  round: null,          // host-authoritative round data (mirrored)
+  mySecret: null,       // {role, word, categoryName}
+  dataset: null,        // host dataset
+  datasetSummary: "No JSON loaded yet."
+};
+
+function saveDatasetToLocal(){
+  try{
+    localStorage.setItem("wi_dataset", JSON.stringify(state.dataset));
+  }catch(e){}
+}
+function loadDatasetFromLocal(){
+  try{
+    const t = localStorage.getItem("wi_dataset");
+    if(!t) return;
+    const parsed = JSON.parse(t);
+    if(validateDataset(parsed).ok){
+      state.dataset = parsed;
+      updateDatasetUI();
+    }
+  }catch(e){}
+}
+
+/* ============================
+   4) Dataset validation + UI
+   ============================ */
+function validateDataset(ds){
+  if(!ds || typeof ds !== "object") return {ok:false, msg:"JSON must be an object."};
+  if(!Array.isArray(ds.categories)) return {ok:false, msg:"Missing 'categories' array."};
+  if(ds.categories.length < 1) return {ok:false, msg:"Need at least 1 category."};
+
+  for (let i=0;i<ds.categories.length;i++){
+    const c = ds.categories[i];
+    if(!c || typeof c !== "object") return {ok:false, msg:`Category #${i+1} must be an object.`};
+    if(typeof c.name !== "string" || !c.name.trim()) return {ok:false, msg:`Category #${i+1} missing name.`};
+    if(!Array.isArray(c.words) || c.words.length < 2) return {ok:false, msg:`Category '${c.name}' needs at least 2 words.`};
+    // basic word checks
+    const seen = new Set();
+    for (const w of c.words){
+      if(typeof w !== "string" || !w.trim()) return {ok:false, msg:`Category '${c.name}' has an invalid word.`};
+      const key = w.trim().toLowerCase();
+      if(seen.has(key)) return {ok:false, msg:`Category '${c.name}' has duplicate word: '${w}'.`};
+      seen.add(key);
+    }
+  }
+  return {ok:true};
+}
+
+function updateDatasetUI(){
+  const ds = state.dataset;
+  if(!ds){
+    state.datasetSummary = "No JSON loaded yet.";
+    $("txtDataset").value = state.datasetSummary;
+    // categories dropdown
+    $("selCategory").innerHTML = `<option value="random">Random category</option>`;
+    return;
+  }
+
+  const catCount = ds.categories.length;
+  const wordTotal = ds.categories.reduce((a,c)=>a + (c.words?.length || 0), 0);
+  state.datasetSummary =
+    `Loaded: ${ds.title || "Untitled dataset"}\n` +
+    `Categories: ${catCount}\n` +
+    `Total words: ${wordTotal}\n\n` +
+    `Example categories:\n- ` +
+    ds.categories.slice(0,6).map(c => `${c.name} (${c.words.length})`).join("\n- ");
+
+  $("txtDataset").value = state.datasetSummary;
+
+  // build category selector
+  const sel = $("selCategory");
+  sel.innerHTML = `<option value="random">Random category</option>` +
+                  ds.categories.map((c, idx)=> `<option value="${idx}">${c.name} (${c.words.length})</option>`).join("");
+}
+
+/* ======================
+   5) Rendering player UI
+   ====================== */
+function renderPlayers(listElId){
+  const ul = $(listElId);
+  ul.innerHTML = "";
+
+  const meId = state.myPeerId;
+  for (const p of state.players){
+    const li = document.createElement("li");
+    const left = document.createElement("div");
+    left.style.display = "flex";
+    left.style.gap = "10px";
+    left.style.alignItems = "center";
+
+    const name = document.createElement("div");
+    name.textContent = p.name + (p.isHost ? " (Host)" : "");
+    name.style.fontWeight = "700";
+    name.style.fontSize = "13px";
+
+    const tags = document.createElement("div");
+    tags.style.display = "flex";
+    tags.style.gap = "6px";
+    tags.style.flexWrap = "wrap";
+
+    if (p.id === meId){
+      const t = document.createElement("span");
+      t.className = "tag me";
+      t.textContent = "YOU";
+      tags.appendChild(t);
+    }
+    if (p.isHost){
+      const t = document.createElement("span");
+      t.className = "tag host";
+      t.textContent = "HOST";
+      tags.appendChild(t);
+    }
+    if (!p.connected){
+      const t = document.createElement("span");
+      t.className = "tag off";
+      t.textContent = "OFFLINE";
+      tags.appendChild(t);
+    } else {
+      const t = document.createElement("span");
+      t.className = "tag";
+      t.textContent = "ONLINE";
+      tags.appendChild(t);
+    }
+
+    left.appendChild(name);
+    left.appendChild(tags);
+
+    const right = document.createElement("div");
+    right.style.display = "flex";
+    right.style.gap = "8px";
+    right.style.alignItems = "center";
+
+    // vote status hints
+    if (state.phase === "vote" || state.phase === "results"){
+      const t = document.createElement("span");
+      t.className = "tag";
+      t.textContent = p.hasVoted ? "VOTED" : "NOT VOTED";
+      right.appendChild(t);
+    }
+
+    li.appendChild(left);
+    li.appendChild(right);
+    ul.appendChild(li);
+  }
+}
+
+function renderAllPlayerLists(){
+  renderPlayers("playerList");
+  renderPlayers("playerListRound");
+  renderPlayers("playerListVote");
+}
+
+/* ===========================
+   6) PeerJS: Host / Join logic
+   =========================== */
+
+/**
+ * ROOM ID -> Peer ID mapping:
+ * Host claims peerId = "room-####"
+ * Joiners connect to that peerId.
+ * This avoids needing a server for mapping.
+ */
+function roomIdToPeerId(code){
+  return `room-${code}`;
+}
+
+function createPeer(peerId){
+  // Use default public PeerJS broker.
+  // NOTE: For production/reliability you may want your own PeerJS server.
+  return new Peer(peerId, {
+    debug: 1
+  });
+}
+
+function buildMyPeerIdForJoiner(){
+  // stable-ish id per browser (so refresh can rejoin with same identity)
+  const key = "wi_my_peer_id";
+  let id = localStorage.getItem(key);
+  if(!id){
+    id = `p-${Math.random().toString(36).slice(2,9)}-${Date.now().toString(36)}`;
+    localStorage.setItem(key, id);
+  }
+  return id;
+}
+
+function ensureName(){
+  const n = ($("inpName").value || "").trim();
+  if(!n){
+    toast("Enter your name first");
+    return null;
+  }
+  state.myName = n.slice(0,20);
+  return state.myName;
+}
+
+async function hostRoom(){
+  const name = ensureName();
+  if(!name) return;
+
+  state.isHost = true;
+
+  // pick a 4-digit code. Try until it opens, else user can retry.
+  let code = String(randInt(1000, 9999));
+  // allow user to pre-fill room input to request a code
+  const typed = clampRoomDigits($("inpRoom").value);
+  if(typed.length === 4) code = typed;
+
+  state.roomCode = code;
+  state.roomPeerId = roomIdToPeerId(code);
+
+  // host uses room peer id
+  state.myPeerId = state.roomPeerId;
+  state.peer = createPeer(state.myPeerId);
+
+  setStatus(false, `Hosting… claiming room ${code}`);
+
+  state.peer.on("open", (id)=>{
+    setStatus(true, `Hosting room ${state.roomCode}`);
+    // host is also a player
+    state.players = [{
+      id: state.myPeerId,
+      name: state.myName,
+      isHost: true,
+      connected: true,
+      hasVoted: false,
+      voteFor: null
+    }];
+
+    // show lobby
+    $("lobbyInfo").innerHTML = `Room ID: <b>${state.roomCode}</b> (share with players)`;
+    $("hostControls").style.display = "";
+    $("hostRoundControls").style.display = "";
+    $("hostVoteControls").style.display = "";
+
+    showSection("secLobby");
+    state.phase = "lobby";
+
+    loadDatasetFromLocal();
+    updateDatasetUI();
+    renderAllPlayerLists();
+    updateVoteSelectOptions();
+  });
+
+  state.peer.on("connection", (conn)=>{
+    // new joiner connection
+    conn.on("open", ()=>{
+      state.conns.set(conn.peer, conn);
+      // We wait for "hello" to register name.
+    });
+
+    conn.on("data", (msg)=>{
+      onHostMessage(conn, msg);
+    });
+
+    conn.on("close", ()=>{
+      // mark player offline
+      const p = state.players.find(x=>x.id === conn.peer);
+      if(p) p.connected = false;
+      state.conns.delete(conn.peer);
+      broadcastRoster();
+      renderAllPlayerLists();
+    });
+
+    conn.on("error", ()=>{
+      const p = state.players.find(x=>x.id === conn.peer);
+      if(p) p.connected = false;
+      state.conns.delete(conn.peer);
+      broadcastRoster();
+      renderAllPlayerLists();
+    });
+  });
+
+  state.peer.on("error", (err)=>{
+    // If ID is taken, host must pick another code
+    console.error(err);
+    if(String(err?.type || "").includes("unavailable-id")){
+      toast(`Room ID ${state.roomCode} is already in use. Try another 4-digit code.`);
+      setStatus(false, `Room ID ${state.roomCode} taken`);
+      // reset
+      safeCleanupPeer();
+      state.isHost = false;
+      state.phase = "home";
+      showSection("secHome");
+      return;
+    }
+    toast(`Peer error: ${err?.type || "unknown"}`);
+    setStatus(false, `Error: ${err?.type || "unknown"}`);
+  });
+}
+
+async function joinRoom(){
+  const name = ensureName();
+  if(!name) return;
+
+  const code = clampRoomDigits($("inpRoom").value);
+  if(code.length !== 4){
+    toast("Enter a 4-digit Room ID");
+    return;
+  }
+
+  state.isHost = false;
+  state.roomCode = code;
+  state.roomPeerId = roomIdToPeerId(code);
+
+  // joiner uses stable id
+  state.myPeerId = buildMyPeerIdForJoiner();
+  state.peer = createPeer(state.myPeerId);
+
+  setStatus(false, `Joining room ${code}…`);
+
+  state.peer.on("open", ()=>{
+    setStatus(false, `Connecting to host…`);
+    state.hostConn = state.peer.connect(state.roomPeerId, { reliable: true });
+
+    state.hostConn.on("open", ()=>{
+      setStatus(true, `Connected to room ${state.roomCode}`);
+      // say hello to host
+      sendToHost({ t:"hello", name: state.myName, id: state.myPeerId });
+    });
+
+    state.hostConn.on("data", (msg)=> onJoinerMessage(msg));
+    state.hostConn.on("close", ()=>{
+      setStatus(false, "Disconnected from host");
+      toast("Disconnected");
+    });
+    state.hostConn.on("error", ()=>{
+      setStatus(false, "Connection error");
+      toast("Connection error");
+    });
+  });
+
+  state.peer.on("error", (err)=>{
+    console.error(err);
+    toast(`Peer error: ${err?.type || "unknown"}`);
+    setStatus(false, `Error: ${err?.type || "unknown"}`);
+  });
+}
+
+function safeCleanupPeer(){
+  try{
+    if(state.hostConn){ state.hostConn.close(); state.hostConn = null; }
+  }catch(e){}
+  try{
+    for (const c of state.conns.values()) c.close();
+  }catch(e){}
+  state.conns.clear();
+  try{
+    if(state.peer){ state.peer.destroy(); state.peer = null; }
+  }catch(e){}
+}
+
+function leaveRoom(){
+  safeCleanupPeer();
+  state.players = [];
+  state.round = null;
+  state.mySecret = null;
+  state.phase = "home";
+  state.isHost = false;
+  setStatus(false, "Not connected");
+  showSection("secHome");
+}
+
+function sendToHost(msg){
+  if(state.hostConn && state.hostConn.open){
+    state.hostConn.send(msg);
+  }
+}
+
+function hostSendTo(peerId, msg){
+  const c = state.conns.get(peerId);
+  if(c && c.open) c.send(msg);
+}
+
+function hostBroadcast(msg){
+  for (const [peerId, c] of state.conns.entries()){
+    if(c && c.open) c.send(msg);
+  }
+}
+
+function broadcastRoster(){
+  hostBroadcast({ t:"roster", players: state.players, phase: state.phase, round: state.round });
+}
+
+function updateVoteSelectOptions(){
+  const sel = $("selVote");
+  sel.innerHTML = "";
+  for (const p of state.players){
+    // do not allow voting self? many games allow, but usually no.
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = p.name + (p.isHost ? " (Host)" : "");
+    sel.appendChild(opt);
+  }
+}
+
+/* =================================
+   7) Host message handling (authoritative)
+   ================================= */
+function onHostMessage(conn, msg){
+  if(!msg || typeof msg !== "object") return;
+
+  if(msg.t === "hello"){
+    const joinerId = msg.id || conn.peer;
+    const joinerName = String(msg.name || "Player").slice(0,20);
+
+    // if player already exists (reconnect), mark connected
+    let p = state.players.find(x=>x.id === joinerId);
+    if(!p){
+      p = {
+        id: joinerId,
+        name: joinerName,
+        isHost: false,
+        connected: true,
+        hasVoted: false,
+        voteFor: null
+      };
+      state.players.push(p);
+    }else{
+      p.name = joinerName;
+      p.connected = true;
+    }
+
+    // send current roster to all
+    broadcastRoster();
+
+    // also send roster to this joiner immediately
+    hostSendTo(joinerId, { t:"roster", players: state.players, phase: state.phase, round: state.round });
+
+    renderAllPlayerLists();
+    updateVoteSelectOptions();
+    return;
+  }
+
+  if(msg.t === "vote"){
+    if(state.phase !== "vote") return;
+    const from = conn.peer;
+    const voteFor = msg.voteFor;
+
+    const voter = state.players.find(x=>x.id === from);
+    if(!voter) return;
+    voter.hasVoted = true;
+    voter.voteFor = voteFor;
+
+    // send roster updates
+    broadcastRoster();
+    renderAllPlayerLists();
+    updateHostVoteProgress();
+    return;
+  }
+
+  if(msg.t === "revealRequest"){
+    // optional: allow joiner to request their secret again (we do one-time by default)
+    // We'll deny by default to reduce peeking. You can change this behavior.
+    hostSendTo(conn.peer, { t:"toast", msg:"Reveal is one-time this round (ask host to restart round if needed)." });
+    return;
+  }
+}
+
+/* ===========================
+   8) Joiner message handling
+   =========================== */
+function onJoinerMessage(msg){
+  if(!msg || typeof msg !== "object") return;
+
+  if(msg.t === "roster"){
+    state.players = msg.players || [];
+    state.phase = msg.phase || "lobby";
+    state.round = msg.round || null;
+
+    // UI transitions based on phase
+    if(state.phase === "lobby"){
+      $("lobbyInfo").innerHTML = `Room ID: <b>${state.roomCode}</b>`;
+      $("hostControls").style.display = "none";
+      $("hostRoundControls").style.display = "none";
+      $("hostVoteControls").style.display = "none";
+      showSection("secLobby");
+    }else if(state.phase === "round"){
+      showSection("secRound");
+    }else if(state.phase === "vote"){
+      showSection("secVote");
+    }else if(state.phase === "results"){
+      showSection("secResults");
+    }
+
+    renderAllPlayerLists();
+    updateVoteSelectOptions();
+    updateRoundInfoUI();
+    updateVoteUI();
+    updateResultsUI();
+    return;
+  }
+
+  if(msg.t === "assignSecret"){
+    // host sends secret for THIS player only
+    state.mySecret = msg.secret;
+    updateRoundInfoUI();
+    return;
+  }
+
+  if(msg.t === "phase"){
+    state.phase = msg.phase;
+    state.round = msg.round || state.round;
+
+    if(state.phase === "round") showSection("secRound");
+    if(state.phase === "vote") showSection("secVote");
+    if(state.phase === "results") showSection("secResults");
+
+    renderAllPlayerLists();
+    updateRoundInfoUI();
+    updateVoteUI();
+    updateResultsUI();
+    return;
+  }
+
+  if(msg.t === "results"){
+    state.phase = "results";
+    state.round = msg.round;
+    showSection("secResults");
+    updateResultsUI();
+    return;
+  }
+
+  if(msg.t === "toast"){
+    toast(msg.msg || "—");
+    return;
+  }
+}
+
+/* ===========================
+   9) Round creation + phases
+   =========================== */
+function startRoundHost(){
+  if(!state.isHost) return;
+
+  if(!state.dataset || !validateDataset(state.dataset).ok){
+    toast("Host: load a valid JSON dataset first");
+    return;
+  }
+
+  const onlinePlayers = state.players.filter(p=>p.connected);
+  if(onlinePlayers.length < 3){
+    toast("Need at least 3 connected players to start");
+    return;
+  }
+
+  // reset votes
+  for (const p of state.players){
+    p.hasVoted = false;
+    p.voteFor = null;
+  }
+
+  // choose imposter among connected players (including host)
+  const imposter = pickRandom(onlinePlayers);
+
+  // choose category
+  const catSel = $("selCategory").value;
+  const categories = state.dataset.categories;
+  const category = (catSel === "random") ? pickRandom(categories) : categories[Number(catSel)];
+  if(!category || !Array.isArray(category.words) || category.words.length < 2){
+    toast("Selected category has insufficient words");
+    return;
+  }
+
+  // choose word(s)
+  const genuineWord = pickRandom(category.words);
+  const mode = $("selImposterMode").value;
+
+  let imposterWord = "???";
+  if(mode === "different"){
+    const pool = category.words.filter(w => w !== genuineWord);
+    imposterWord = pool.length ? pickRandom(pool) : "???";
+  }
+
+  // create round object (authoritative)
+  state.round = {
+    id: "r-" + Date.now(),
+    categoryName: category.name,
+    genuineWord,         // host keeps it
+    imposterId: imposter.id,
+    imposterMode: mode,
+    // (we do not broadcast genuineWord to everyone; secrets are per-player)
+    votesOpen: false,
+    results: null
+  };
+
+  // move to round phase
+  state.phase = "round";
+
+  // Assign secrets to each connected player (privately)
+  for (const p of onlinePlayers){
+    const isImposter = (p.id === state.round.imposterId);
+    const secret = {
+      role: isImposter ? "IMPOSTER" : "GENUINE",
+      word: isImposter ? imposterWord : genuineWord,
+      categoryName: category.name
+    };
+
+    if(p.id === state.myPeerId){
+      state.mySecret = secret; // host's secret local
+    }else{
+      hostSendTo(p.id, { t:"assignSecret", secret });
+    }
+  }
+
+  // Broadcast phase without leaking genuineWord
+  hostBroadcast({ t:"phase", phase:"round", round: scrubRoundForClients() });
+
+  // Host UI update
+  showSection("secRound");
+  updateRoundInfoUI();
+  renderAllPlayerLists();
+  broadcastRoster();
+}
+
+function scrubRoundForClients(){
+  if(!state.round) return null;
+  return {
+    id: state.round.id,
+    categoryName: state.round.categoryName,
+    imposterId: null, // hidden
+    imposterMode: state.round.imposterMode,
+    votesOpen: state.round.votesOpen,
+    results: state.round.results
+  };
+}
+
+function openVotingHost(){
+  if(!state.isHost || state.phase !== "round" || !state.round) return;
+  state.phase = "vote";
+  state.round.votesOpen = true;
+
+  hostBroadcast({ t:"phase", phase:"vote", round: scrubRoundForClients() });
+  broadcastRoster();
+
+  showSection("secVote");
+  updateHostVoteProgress();
+  updateVoteUI();
+  renderAllPlayerLists();
+}
+
+function closeVotingHost(){
+  if(!state.isHost || state.phase !== "vote") return;
+  // keep in vote phase but prevent further submits? simplest: just ignore new vote messages after close
+  state.round.votesOpen = false;
+  toast("Voting closed");
+  hostBroadcast({ t:"toast", msg:"Host closed voting." });
+  // still keep phase as vote (host can reveal results)
+}
+
+function submitVote(){
+  if(state.isHost){
+    // host submits locally
+    if(state.phase !== "vote") return;
+    const voteFor = $("selVote").value;
+
+    const me = state.players.find(p => p.id === state.myPeerId);
+    if(!me) return;
+
+    if(me.hasVoted){
+      toast("You already voted");
+      return;
+    }
+
+    me.hasVoted = true;
+    me.voteFor = voteFor;
+
+    broadcastRoster();
+    renderAllPlayerLists();
+    updateHostVoteProgress();
+    toast("Vote submitted ✅");
+    return;
+  }
+
+  // joiner sends to host
+  if(state.phase !== "vote"){
+    toast("Voting is not open yet");
+    return;
+  }
+  const voteFor = $("selVote").value;
+  sendToHost({ t:"vote", voteFor });
+  toast("Vote submitted ✅");
+}
+
+function computeResultsHost(){
+  if(!state.isHost || state.phase !== "vote" || !state.round) return;
+
+  // ensure all connected players voted
+  const connected = state.players.filter(p => p.connected);
+  const missing = connected.filter(p => !p.hasVoted);
+  if(missing.length){
+    toast(`Waiting for ${missing.length} player(s) to vote`);
+    return;
+  }
+
+  // tally
+  const tally = new Map(); // targetId -> count
+  for (const p of connected){
+    const v = p.voteFor;
+    if(!v) continue;
+    tally.set(v, (tally.get(v) || 0) + 1);
+  }
+
+  // find most voted
+  let maxVotes = -1;
+  let eliminatedId = null;
+  for (const [id, cnt] of tally.entries()){
+    if(cnt > maxVotes){
+      maxVotes = cnt;
+      eliminatedId = id;
+    }
+  }
+
+  const imposterId = state.round.imposterId;
+  const eliminatedIsImposter = (eliminatedId === imposterId);
+
+  const win = eliminatedIsImposter ? "GENUINE TEAM WINS" : "IMPOSTER WINS";
+
+  state.round.results = {
+    win,
+    eliminatedId,
+    imposterId,
+    categoryName: state.round.categoryName,
+    genuineWord: state.round.genuineWord,
+    // include per-player vote breakdown for fun (you can hide later)
+    votes: connected.map(p => ({ voterId: p.id, voterName: p.name, voteFor: p.voteFor }))
+  };
+
+  state.phase = "results";
+
+  // Broadcast results safely (this is end, so ok to reveal word)
+  hostBroadcast({ t:"results", round: {
+    id: state.round.id,
+    categoryName: state.round.categoryName,
+    imposterMode: state.round.imposterMode,
+    results: state.round.results
+  }});
+
+  broadcastRoster();
+
+  showSection("secResults");
+  updateResultsUI();
+}
+
+function nextRoundHost(){
+  if(!state.isHost) return;
+  // Go back to lobby but keep players and dataset
+  state.phase = "lobby";
+  state.round = null;
+  state.mySecret = null;
+
+  // reset vote flags
+  for (const p of state.players){
+    p.hasVoted = false;
+    p.voteFor = null;
+  }
+
+  hostBroadcast({ t:"phase", phase:"lobby", round: null });
+  broadcastRoster();
+
+  showSection("secLobby");
+  renderAllPlayerLists();
+}
+
+function backToLobbyCancelHost(){
+  if(!state.isHost) return;
+  state.phase = "lobby";
+  state.round = null;
+  state.mySecret = null;
+
+  hostBroadcast({ t:"phase", phase:"lobby", round: null });
+  broadcastRoster();
+
+  showSection("secLobby");
+  renderAllPlayerLists();
+}
+
+function updateRoundInfoUI(){
+  if(state.phase !== "round") return;
+
+  const cat = state.mySecret?.categoryName || state.round?.categoryName || "—";
+  $("roundInfo").textContent = `Category: ${cat}. Reveal your word on your phone. Discuss offline, then host opens voting.`;
+
+  // host only controls already shown
+}
+
+function updateVoteUI(){
+  if(state.phase !== "vote") return;
+  updateVoteSelectOptions();
+  if(state.isHost) updateHostVoteProgress();
+}
+
+function updateHostVoteProgress(){
+  if(!state.isHost || state.phase !== "vote") return;
+  const connected = state.players.filter(p => p.connected);
+  const voted = connected.filter(p => p.hasVoted).length;
+  $("voteProgress").textContent = `Votes: ${voted}/${connected.length} received.`;
+}
+
+function updateResultsUI(){
+  if(state.phase !== "results") return;
+  const r = state.round?.results;
+  if(!r){
+    $("resultsSummary").textContent = "—";
+    return;
+  }
+
+  const imp = state.players.find(p => p.id === r.imposterId);
+  const elim = state.players.find(p => p.id === r.eliminatedId);
+
+  const impName = imp ? imp.name : "Unknown";
+  const elimName = elim ? elim.name : "No one";
+
+  $("resultsSummary").innerHTML =
+    `<b>${r.win}</b><br>` +
+    `Imposter: <b>${impName}</b><br>` +
+    `Eliminated: <b>${elimName}</b><br>` +
+    `Category: <b>${r.categoryName}</b><br>` +
+    `Genuine word: <b>${r.genuineWord}</b>`;
+
+  // tally list
+  const ul = $("tallyList");
+  ul.innerHTML = "";
+
+  // rebuild tallies
+  const tally = new Map();
+  for (const v of r.votes){
+    if(!v.voteFor) continue;
+    tally.set(v.voteFor, (tally.get(v.voteFor) || 0) + 1);
+  }
+
+  // sort by count
+  const entries = [...tally.entries()].sort((a,b)=>b[1]-a[1]);
+
+  for (const [targetId, cnt] of entries){
+    const target = state.players.find(p => p.id === targetId);
+    const li = document.createElement("li");
+    const left = document.createElement("div");
+    left.style.fontWeight = "800";
+    left.style.fontSize = "13px";
+    left.textContent = target ? target.name : targetId;
+
+    const right = document.createElement("div");
+    right.className = "tag";
+    right.textContent = `${cnt} vote(s)`;
+
+    li.appendChild(left);
+    li.appendChild(right);
+    ul.appendChild(li);
+  }
+
+  if(!entries.length){
+    const li = document.createElement("li");
+    li.textContent = "No votes recorded.";
+    ul.appendChild(li);
+  }
+}
+
+/* ===========================
+   10) Reveal overlay behavior
+   =========================== */
+let revealUsedThisRound = false;
+
+function showReveal(){
+  if(state.phase !== "round"){
+    toast("Not in a round");
+    return;
+  }
+
+  if(!state.mySecret){
+    // joiner might not have received secret yet
+    if(!state.isHost){
+      sendToHost({ t:"revealRequest" });
+    }
+    toast("Secret not ready yet");
+    return;
+  }
+
+  // One-time reveal per round for anti-peek (simple rule)
+  if(revealUsedThisRound){
+    toast("Reveal is one-time this round");
+    return;
+  }
+
+  revealUsedThisRound = true;
+
+  $("revealTitle").textContent = `Category: ${state.mySecret.categoryName}`;
+  $("revealWord").textContent = state.mySecret.word;
+  $("revealRole").innerHTML = `Role: <b>${state.mySecret.role}</b>`;
+
+  $("revealOverlay").classList.add("show");
+}
+
+function hideReveal(){
+  $("revealOverlay").classList.remove("show");
+}
+
+window.addEventListener("keydown", (e)=>{
+  if(e.key === "Escape") hideReveal();
+});
+
+/* ===========================
+   11) Host: Load JSON + Copy prompt
+   =========================== */
+$("btnCopyPrompt").addEventListener("click", async ()=>{
+  const p = buildChatGPTPrompt();
+  await navigator.clipboard.writeText(p);
+  toast("Prompt copied ✅ Paste into ChatGPT");
+});
+
+$("btnLoadJson").addEventListener("click", ()=>{
+  $("fileJson").click();
+});
+
+$("fileJson").addEventListener("change", async (e)=>{
+  const f = e.target.files?.[0];
+  if(!f) return;
+
+  const text = await f.text();
+  const parsed = safeJsonParse(text);
+  if(!parsed.ok){
+    toast("Invalid JSON: " + parsed.err);
+    return;
+  }
+
+  const v = validateDataset(parsed.data);
+  if(!v.ok){
+    toast("Dataset error: " + v.msg);
+    return;
+  }
+
+  state.dataset = parsed.data;
+  saveDatasetToLocal();
+  updateDatasetUI();
+  toast("JSON loaded ✅");
+});
+
+/* ===========================
+   12) Wire UI events
+   =========================== */
+$("inpRoom").addEventListener("input", (e)=>{
+  e.target.value = clampRoomDigits(e.target.value);
+});
+
+$("btnHost").addEventListener("click", hostRoom);
+$("btnJoin").addEventListener("click", joinRoom);
+$("btnLeaveRoom").addEventListener("click", leaveRoom);
+
+$("btnStartRound").addEventListener("click", ()=>{
+  if(state.isHost) startRoundHost();
+  else toast("Only host can start the round");
+});
+
+$("btnRevealMine").addEventListener("click", showReveal);
+$("btnHideReveal").addEventListener("click", hideReveal);
+$("btnHideReveal2").addEventListener("click", hideReveal);
+
+$("btnOpenVoting").addEventListener("click", ()=>{
+  if(state.isHost) openVotingHost();
+  else toast("Only host can open voting");
+});
+
+$("btnBackToLobby").addEventListener("click", ()=>{
+  if(state.isHost) backToLobbyCancelHost();
+  else toast("Ask host to cancel the round");
+});
+
+$("btnSubmitVote").addEventListener("click", submitVote);
+
+$("btnRevealResults").addEventListener("click", ()=>{
+  if(state.isHost) computeResultsHost();
+  else toast("Only host can reveal results");
+});
+
+$("btnCloseVoting").addEventListener("click", ()=>{
+  if(state.isHost) closeVotingHost();
+});
+
+$("btnNextRound").addEventListener("click", ()=>{
+  if(state.isHost) nextRoundHost();
+  else toast("Waiting for host to start next round");
+});
+
+$("btnResultsToLobby").addEventListener("click", ()=>{
+  if(state.isHost) nextRoundHost();
+  else toast("Waiting for host");
+});
+
+/* ===========================
+   13) Small lifecycle helpers
+   =========================== */
+function resetRoundRevealFlagIfNeeded(){
+  revealUsedThisRound = false;
+}
+
+function patchPhaseTransitions(){
+  // whenever host changes phase, reset reveal flag
+  // We'll do a quick observer via setter-ish usage in functions:
+  // call resetRoundRevealFlagIfNeeded() when entering round.
+}
+const _startRoundHost = startRoundHost;
+startRoundHost = function(){
+  resetRoundRevealFlagIfNeeded();
+  _startRoundHost();
+};
+const _onJoinerMessage = onJoinerMessage;
+onJoinerMessage = function(msg){
+  if(msg && msg.t === "phase" && msg.phase === "round") resetRoundRevealFlagIfNeeded();
+  if(msg && msg.t === "roster" && msg.phase === "round") resetRoundRevealFlagIfNeeded();
+  _onJoinerMessage(msg);
+};
+
+/* ===========================
+   14) Initialize
+   =========================== */
+setStatus(false, "Not connected");
+updateDatasetUI();
+</script>
+</body>
+</html>
