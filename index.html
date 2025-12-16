@@ -70,6 +70,7 @@ body{
   justify-content:center;
   padding:18px;
   overflow-x:hidden;
+  overflow-y: auto;   /* IMPORTANT */
   background: radial-gradient(circle at 55% 20%, #BFF7FF 0%, var(--sky1) 25%, var(--sky2) 55%, var(--sky3) 100%);
 }
 
@@ -174,6 +175,9 @@ body::before{
 /* Center and control width of the main card on desktop */
 .grid > .card{
   width: min(760px, 100%);      /* pick a nice desktop width */
+  max-height: calc(100vh - 170px);  /* adjust if needed */
+  overflow: auto;                  /* IMPORTANT: internal scroll */
+  -webkit-overflow-scrolling: touch;
 }
 @media (max-width: 860px){
   .grid{ grid-template-columns: 1fr; }
@@ -560,6 +564,23 @@ button:focus{
     0 4px 10px rgba(0,0,0,.18);
 }
 
+/* Make the Lobby action buttons stick to the top inside the scroll card */
+#secLobby .row:first-of-type{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+
+  padding: 10px 0;
+  background: var(--card); /* cream background (matches your theme) */
+}
+
+/* Players list gets its own scroll area */
+#secLobby #playerList{
+  max-height: 250px;     /* adjust: 260-380 looks good */
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 
 </style>
 
@@ -588,21 +609,21 @@ button:focus{
       <!-- HOME -->
       <div class="section active" id="secHome">
         <h2>Join or Host</h2>
-        <p>Host creates a <b>4-digit room</b> and also plays. Players join with the same code.</p>
+        <!-- <p>Host creates a <b>4-digit room</b> and also plays. Players join with the same code.</p> -->
 
         <div class="row">
           <div>
             <label class="small">Your name</label>
-            <input id="inpName" placeholder="e.g., Mohith" maxlength="20" />
+            <input id="inpName" placeholder="e.g., Sashi" maxlength="20" />
           </div>
         </div>
-
-        <div class="divider"></div>
-
+ 
         <div class="row">
-          <button class="btn-accent" id="btnHost">Host a room (create 4-digit ID)</button>
+          <button style="margin-top: 15px;" class="btn-accent" id="btnHost">Host (Auto Create 4-digit ID)</button>
         </div>
-
+ 
+        <div class="divider"></div>
+		
         <div class="row">
           <div>
             <label class="small">Room ID (4 digits)</label>
@@ -859,6 +880,13 @@ button:focus{
 
 
 <script>
+
+// Auto-fill name from sessionStorage
+const savedName = sessionStorage.getItem("wi_player_name");
+if(savedName){
+  const inp = document.getElementById("inpName");
+  if(inp) inp.value = savedName;
+}
 
 const DEFAULT_WORDS_JSON = 
 {
@@ -1476,6 +1504,7 @@ function ensureName(){
     return null;
   }
   state.myName = n.slice(0,20);
+  sessionStorage.setItem("wi_player_name", state.myName);
   return state.myName;
 }
 
