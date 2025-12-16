@@ -207,8 +207,7 @@ body::before{
   letter-spacing:.2px;
   color: var(--ink);
 }
-.card p{
-  margin:0 0 14px;
+.card p{ 
   color: rgba(43,58,85,.82);
   font-size:10px;
   line-height:1.45;
@@ -593,7 +592,6 @@ button:focus{
       <!-- HOME -->
       <div class="section active" id="secHome">
         <h2>Join or Host</h2>
-        <p>Host creates a <b>4-digit room</b> and also plays. Players join with the same code. Host can load words JSON and start rounds.</p>
 
         <div class="row">
           <div>
@@ -602,12 +600,12 @@ button:focus{
           </div>
         </div>
 
-        <div class="divider"></div>
-
         <div class="row">
-          <button class="btn-accent" id="btnHost">Host a room (create 4-digit ID)</button>
-        </div>
-
+          <button style="margin-top: 15px;" class="btn-accent" id="btnHost">Host a room (create 4-digit ID)</button>
+        </div> 
+		  
+        <div class="divider"></div>
+		  
         <div class="row">
           <div>
             <label class="small">Room ID (4 digits)</label>
@@ -620,7 +618,7 @@ button:focus{
         </div>
 
         <p class="small">
-          Note: If a room ID is already taken, host must choose a different code.
+          (If a room ID is already taken, host must choose a different code)
         </p>
       </div>
 
@@ -2169,4 +2167,5 @@ updateDatasetUI();
 </script>
 </body>
 </html>
+
 
