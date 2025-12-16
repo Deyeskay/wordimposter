@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-<head>  
+<head>
    <meta charset="utf-8" />
   <meta name="description" content="SK Games — Word Imposter. A fast-paced party game where one hidden imposter has no word, everyone else does—and only face-to-face deduction reveals the truth.">
   <meta property="og:title" content="SK Games — Word Imposter">
@@ -13,9 +13,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0c0c0f"> 
   <title>SK Games | Word Imposter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700;800&display=swap" rel="stylesheet">
   <!-- PeerJS (CDN) -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-
+<!--
   <style>
     :root{
       --bg:#0b1020;
@@ -211,6 +212,554 @@
     }
     .toast.show{ display:block; }
   </style>
+-->
+
+<style>
+ 
+:root{
+  /* Theme palette */
+  --sky1:#6AE0ED;
+  --sky2:#3EBADC;
+  --sky3:#0C80C8;
+  --sky4:#2D7EB2;
+
+  --card:#FDF0CE;
+  --cardEdge:#E6C98A;
+  --cardShadow: 0 18px 0 rgba(0,0,0,.10), 0 22px 40px rgba(0,0,0,.22);
+
+  --ink:#2B3A55;
+  --muted:#4B6485;
+
+  --navy:#2C4F77;
+  --navy2:#223F60;
+
+  --gold1:#FEE660;
+  --gold2:#F4D532;
+
+  --teal1:#B6F1F3;
+  --teal2:#45CFE0;
+
+  --orange1:#FFCC63;
+  --orange2:#F79C2E;
+
+  --red1:#FF6A3A;
+  --red2:#EE471C;
+
+  --border:#00000022;
+
+  --radius:24px;
+  --radiusSm:16px;
+
+  --font: "Fredoka", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+*{ box-sizing:border-box; }
+
+html, body { height:100%; }
+
+body{
+  margin:0;
+  font-family: var(--font);
+  color: var(--ink);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  overflow-x:hidden;
+  background: radial-gradient(circle at 55% 20%, #BFF7FF 0%, var(--sky1) 25%, var(--sky2) 55%, var(--sky3) 100%);
+}
+
+/* Sunburst rays */
+body::before{
+  content:"";
+  position:fixed;
+  inset:-20%;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255,255,255,.35) 0 22%, rgba(255,255,255,0) 60%),
+    repeating-conic-gradient(
+      from 210deg at 50% 35%,
+      rgba(255,255,255,.22) 0 12deg,
+      rgba(255,255,255,0) 12deg 24deg
+    );
+  opacity:.75;
+  pointer-events:none;
+  transform: rotate(-6deg);
+}
+
+/* Keep app above burst */
+.app{
+  width:min(980px, 100%);
+  position:relative;
+  z-index:1;
+}
+
+/* Top bar becomes a “badge strip” */
+.topbar{
+  width: min(760px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 16px;
+  border-radius: 22px;
+  border: 3px solid rgba(255,255,255,.65);
+  background: linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,.12));
+  box-shadow: 0 12px 26px rgba(0,0,0,.18);
+  margin-bottom:12px;
+  backdrop-filter: blur(4px);
+}
+
+/* Brand */
+.brand{ display:flex; gap:12px; align-items:flex-start; }
+.logo{
+  width:44px; height:44px;
+  border-radius: 16px;
+  background: url(https://deyeskay.github.io/hub/sk-download.svg) center/cover no-repeat;
+  box-shadow:
+    0 6px 0 rgba(0,0,0,.10),
+    0 10px 22px rgba(0,0,0,.18);
+  border: 2px solid rgba(255,255,255,.75);
+}
+.brand h1{
+  font-size:18px;
+  margin:0;
+  letter-spacing:.2px;
+  font-weight:800;
+}
+.brand p{
+  margin:4px 0 0;
+  color: rgba(43,58,85,.85);
+  font-size:12px;
+  line-height:1.35;
+}
+
+/* Status pill -> coin badge style */
+.pill{
+  display:inline-flex;
+  gap:8px;
+  align-items:center;
+  padding:10px 12px;
+  border-radius:999px;
+  border: 3px solid rgba(255,255,255,.70);
+  background: linear-gradient(180deg, rgba(255,255,255,.40), rgba(255,255,255,.18));
+  font-size:12px;
+  color: rgba(43,58,85,.90);
+  box-shadow: 0 10px 18px rgba(0,0,0,.16);
+  white-space:nowrap;
+}
+.dot{
+  width:10px; height:10px;
+  border-radius:50%;
+  background: var(--red2);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.5), 0 0 18px rgba(238,71,28,.35);
+}
+.dot.ok{
+  background: #2BD07D;
+  box-shadow: 0 0 0 3px rgba(255,255,255,.5), 0 0 18px rgba(43,208,125,.35);
+}
+
+/* Layout grid */
+.grid{
+  display: grid;
+  grid-template-columns: 1fr;   /* IMPORTANT: remove 2nd column */
+  justify-items: center;        /* center the child card horizontally */
+  gap: 14px;
+}
+/* Center and control width of the main card on desktop */
+.grid > .card{
+  width: min(760px, 100%);      /* pick a nice desktop width */
+}
+@media (max-width: 860px){
+  .grid{ grid-template-columns: 1fr; }
+  .brand p{ display:none; } /* cleaner on small screens */
+}
+
+/* Main cards become cream panels */
+.card{
+  border-radius: var(--radius);
+  border: 3px solid rgba(255,255,255,.80);
+  background: var(--card);
+  box-shadow: var(--cardShadow);
+  padding:18px;
+  position:relative;
+}
+
+/* Slight inner highlight like a cartoon panel */
+.card::before{
+  content:"";
+  position:absolute;
+  inset:10px;
+  border-radius: calc(var(--radius) - 10px);
+  border: 2px solid rgba(255,255,255,.55);
+  pointer-events:none;
+}
+
+.card h2{
+  margin:0 0 10px;
+  font-size:16px;
+  font-weight:900;
+  letter-spacing:.2px;
+  color: var(--ink);
+}
+.card p{
+  margin:0 0 14px;
+  color: rgba(43,58,85,.82);
+  font-size:13px;
+  line-height:1.45;
+}
+
+/* Rows */
+.row{ display:flex; gap:10px; flex-wrap:wrap; }
+.row > *{ flex:1; }
+.row.tight > *{ flex:0 0 auto; }
+
+/* Inputs: rounded, spacious, minimal */
+input, select, button, textarea{
+  width:100%;
+  font-family: var(--font);
+  border-radius: 18px;
+  padding:12px 14px;
+  outline:none;
+  font-size:14px;
+}
+
+input, select, textarea{
+  border: 2px solid rgba(43,58,85,.22);
+  background: rgba(255,255,255,.70);
+  color: var(--ink);
+  box-shadow: 0 6px 0 rgba(0,0,0,.06);
+}
+
+input::placeholder, textarea::placeholder{
+  color: rgba(43,58,85,.55);
+}
+
+textarea{ min-height: 120px; resize: vertical; }
+
+/* Buttons: chunky, blocky, playful */
+button{
+  cursor:pointer;
+  font-weight:900;
+  letter-spacing:.2px;
+  border: 2px solid rgba(43,58,85,.25);
+  box-shadow: 0 4px 0 rgba(0,0,0,.16), 0 16px 26px rgba(0,0,0,.18);
+  transform: translateY(0);
+  transition: transform .08s ease, filter .15s ease, box-shadow .12s ease;
+  user-select:none;
+}
+button:hover{ filter: brightness(1.03); }
+button:active{
+  transform: translateY(3px);
+  box-shadow: 0 5px 0 rgba(0,0,0,.14), 0 10px 18px rgba(0,0,0,.16);
+}
+
+/* Primary / Accent button (Replay-like teal) */
+.btn-accent{
+  background: linear-gradient(180deg, var(--teal1), var(--teal2));
+  border-color: rgba(34,63,96,.25);
+  color: var(--ink);
+}
+
+/* Warning button (gold) */
+.btn-warn{
+  background: linear-gradient(180deg, var(--gold1), var(--gold2));
+  border-color: rgba(34,63,96,.25);
+  color: var(--ink);
+}
+
+/* Danger button (red) */
+.btn-danger{
+  background: linear-gradient(180deg, var(--red1), var(--red2));
+  border-color: rgba(34,63,96,.25);
+  color: #fff;
+  text-shadow: 0 1px 0 rgba(0,0,0,.12);
+}
+
+/* Ghost button becomes “soft navy” secondary */
+.btn-ghost{
+  background: linear-gradient(180deg, rgba(44,79,119,.18), rgba(44,79,119,.10));
+  border-color: rgba(44,79,119,.25);
+  color: var(--ink);
+}
+
+/* Small helper text */
+.small{ font-size:12px; color: rgba(43,58,85,.75); }
+
+/* Sections */
+.section{ display:none; }
+.section.active{ display:block; }
+
+.font-small, .font-small li{ font-size: 12px; color: rgba(43,58,85,.80); }
+
+/* Divider (soft) */
+.divider{
+  height:2px;
+  background: linear-gradient(90deg, rgba(43,58,85,.10), rgba(43,58,85,.20), rgba(43,58,85,.10));
+  margin:14px 0;
+  border-radius: 999px;
+}
+
+/* Player list */
+.list{
+  margin:10px 0 0;
+  padding:0;
+  list-style:none;
+  border: 2px solid rgba(43,58,85,.18);
+  border-radius: 18px;
+  overflow:hidden;
+  background: rgba(255,255,255,.55);
+  box-shadow: 0 6px 0 rgba(0,0,0,.06);
+}
+.list li{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:12px 12px;
+  background: rgba(255,255,255,.40);
+  border-top: 2px solid rgba(43,58,85,.10);
+}
+.list li:first-child{ border-top:none; }
+
+/* Tags (HOST / YOU / ONLINE / OFFLINE) */
+.tag{
+  font-size:11px;
+  padding:6px 10px;
+  border-radius:999px;
+  border: 2px solid rgba(43,58,85,.16);
+  color: rgba(43,58,85,.82);
+  background: rgba(255,255,255,.55);
+  font-weight:800;
+}
+.tag.host{
+  border-color: rgba(34,63,96,.20);
+  background: linear-gradient(180deg, rgba(124,255,209,.30), rgba(110,231,255,.22));
+}
+.tag.me{
+  border-color: rgba(34,63,96,.20);
+  background: linear-gradient(180deg, rgba(255,230,96,.35), rgba(244,213,50,.20));
+}
+.tag.off{
+  border-color: rgba(238,71,28,.25);
+  background: linear-gradient(180deg, rgba(255,106,58,.28), rgba(238,71,28,.18));
+}
+
+/* Full-screen reveal overlay: keep burst vibe but focus on cream popup */
+.revealOverlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:22px;
+  z-index:9999;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255,255,255,.35) 0 24%, rgba(255,255,255,0) 60%),
+    repeating-conic-gradient(from 210deg at 50% 30%, rgba(255,255,255,.18) 0 12deg, rgba(255,255,255,0) 12deg 24deg),
+    rgba(12,128,200,.65);
+  backdrop-filter: blur(3px);
+}
+.revealOverlay.show{ display:flex; }
+
+.revealCard{
+  width:min(720px, 100%);
+  border-radius: 30px;
+  border: 4px solid rgba(255,255,255,.85);
+  background: var(--card);
+  box-shadow: 0 18px 0 rgba(0,0,0,.10), 0 28px 60px rgba(0,0,0,.28);
+  padding:20px;
+  text-align:center;
+  position:relative;
+}
+.revealCard::before{
+  content:"";
+  position:absolute;
+  inset:10px;
+  border-radius: 22px;
+  border: 2px solid rgba(255,255,255,.55);
+  pointer-events:none;
+}
+
+.revealTitle{
+  font-size:13px;
+  color: rgba(43,58,85,.75);
+  margin:0 0 10px;
+  font-weight:800;
+}
+.revealWord{
+  margin:0;
+  font-size: clamp(34px, 7vw, 64px);
+  letter-spacing:.6px;
+  font-weight: 900;
+  color: var(--ink);
+  text-shadow: 0 2px 0 rgba(255,255,255,.35);
+  word-break:break-word;
+}
+.revealRole{
+  margin:10px 0 0;
+  font-size:13px;
+  color: rgba(43,58,85,.78);
+  font-weight:800;
+}
+.hint{
+  margin:12px 0 0;
+  font-size:12px;
+  color: rgba(43,58,85,.70);
+}
+
+/* Toast -> small pill */
+.toast{
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.70));
+  border: 3px solid rgba(255,255,255,.80);
+  padding:10px 14px;
+  border-radius: 999px;
+  color: rgba(43,58,85,.92);
+  font-size: 12px;
+  font-weight:800;
+  box-shadow: 0 10px 20px rgba(0,0,0,.18);
+  display:none;
+  z-index:99999;
+}
+.toast.show{ display:block; }
+
+/* Make select arrows nicer on WebKit */
+select{
+  appearance:none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(43,58,85,.8) 50%),
+    linear-gradient(135deg, rgba(43,58,85,.8) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 2px),
+    calc(100% - 12px) calc(50% - 2px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat:no-repeat;
+  padding-right:36px;
+}
+
+/* Accessibility focus */
+input:focus, select:focus, textarea:focus{
+  border-color: rgba(12,128,200,.55);
+  box-shadow: 0 0 0 4px rgba(106,224,237,.35), 0 6px 0 rgba(0,0,0,.06);
+}
+button:focus{
+  outline:none;
+  box-shadow: 0 0 0 4px rgba(106,224,237,.35), 0 8px 0 rgba(0,0,0,.16), 0 16px 26px rgba(0,0,0,.18);
+}
+
+
+
+/* Floating help button — top-right of screen */
+.helpBtn{
+  position: fixed;
+    top: -50px;
+    right: 12px;
+    z-index: 1000;
+    width: 146px;
+    height: 36px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 1;
+    color: #2b3a55;
+    background: linear-gradient(180deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, .30));
+    border: 2px solid rgba(255, 255, 255, .75);
+    box-shadow: 0 6px 0 rgba(0, 0, 0, .10), 0 12px 24px rgba(0, 0, 0, .18);
+    cursor: pointer;
+    padding: 0;
+}
+
+/* Hover */
+.helpBtn:hover{
+  background: linear-gradient(
+    180deg,
+    rgba(124,255,209,.55),
+    rgba(110,231,255,.35)
+  );
+}
+
+/* Pressed */
+.helpBtn:active{
+  transform: translateY(2px);
+  box-shadow:
+    0 4px 0 rgba(0,0,0,.12),
+    0 8px 16px rgba(0,0,0,.16);
+}
+
+
+/* Help modal tweaks */
+.helpCard{
+  position:relative;
+  max-height:80vh;
+  overflow:auto;
+}
+
+/* Modal close (X) button — perfectly centered */
+.closeBtn{
+  position: absolute;
+  top: 12px;
+  right: 12px;
+
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;          /* IMPORTANT */
+
+  padding: 0;              /* IMPORTANT */
+  margin: 0;
+
+  border: 2px solid rgba(0,0,0,.15);
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,.75),
+    rgba(255,255,255,.45)
+  );
+
+  color: #2b3a55;
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 0 rgba(0,0,0,.12),
+    0 8px 16px rgba(0,0,0,.20);
+}
+
+/* Hover */
+.closeBtn:hover{
+  background: linear-gradient(
+    180deg,
+    rgba(255,120,120,.65),
+    rgba(255,90,90,.45)
+  );
+}
+
+/* Press */
+.closeBtn:active{
+  transform: translateY(2px);
+  box-shadow:
+    0 2px 0 rgba(0,0,0,.14),
+    0 4px 10px rgba(0,0,0,.18);
+}
+
+
+</style>
 </head>
 
 <body>
@@ -227,6 +776,8 @@
       <span class="dot" id="statusDot"></span>
       <span id="statusText">Not connected</span>
     </div>
+	<button class="helpBtn" id="btnHelp" title="How to play">How to play ?</button>
+
   </div>
 
   <div class="grid">
@@ -290,7 +841,6 @@
           <div class="row">
             <button class="btn-ghost" id="btnCopyPrompt">Copy prompt for ChatGPT (generate JSON)</button>
             <button class="btn-warn" id="btnLoadJson">Load JSON (host)</button>
-            <!-- <input type="file" id="fileJson" accept="application/json" style="display:none;"> -->
           </div>
 
           <div class="row">
@@ -398,13 +948,8 @@
     </div>
 
     <!-- RIGHT: Helpers / quick instructions -->
-    <div class="card">
+    <!--<div class="card">
       <h2>How to Play</h2>
-      <!-- <p>
-        This app uses PeerJS for peer-to-peer connections. The host creates a room with ID <code>####</code>.
-        Players join and connect to the host. The host is still a normal player in rounds.
-      </p> -->
-
 	 <ul class="font-small">
 	 <li>One player creates a room and shares the 4-digit Room ID.</li><li>
 	All players join using the Room ID and their name.</li><li>
@@ -436,7 +981,7 @@
         <li>Host loads JSON once; it’s used for all rounds.</li>
         <li>Discussion happens offline; open voting when ready.</li>
       </ul>
-    </div>
+    </div> -->
   </div>
 </div>
 
@@ -472,316 +1017,58 @@
     </p>
   </div>
 </div>
+
+
+<!-- How To Play Modal -->
+<div class="revealOverlay" id="helpModal">
+  <div class="revealCard helpCard">
+    <button class="closeBtn" id="btnHelpClose">✕</button>
+
+    <h3 style="margin-top:0">How to Play</h3>
+
+    <ul class="font-small">
+      <li>One player creates a room and shares the 4-digit Room ID.</li>
+      <li>All players join using the Room ID and their name.</li>
+      <li>The host starts a round — one player is secretly chosen as the Imposter.</li>
+      <li>Everyone taps <b>Reveal My Word</b> on their phone:</li>
+      <li>• Genuine players see the same word</li>
+      <li>• The Imposter sees <b>???</b></li>
+      <li>Players discuss offline to find the Imposter.</li>
+      <li>The host opens voting when ready.</li>
+      <li>Results are revealed — find out who won!</li>
+    </ul>
+
+    <div class="divider"></div>
+
+    <h3>Tips</h3>
+    <ul class="small" style="margin:0; padding-left:18px; line-height:1.55;">
+      <li>Use <b>Imposter = “???”</b> mode for best gameplay.</li>
+      <li>Host loads JSON once; reused for all rounds.</li>
+      <li>Discussion happens offline.</li>
+    </ul>
+  </div>
+</div>
+
+
 <script>
 
-const DEFAULT_WORDS_JSON = 
-{
+const DEFAULT_WORDS_JSON = {
 "title": "Ultimate Word Imposter Sets",
 "categories": [
-{
-"name": "Fruits",
-"words": [
-"Apple",
-"Banana",
-"Orange",
-"Mango",
-"Pineapple",
-"Strawberry",
-"Blueberry",
-"Grapes",
-"Watermelon",
-"Peach",
-"Pear",
-"Cherry",
-"Kiwi",
-"Papaya",
-"Lemon",
-"Lime",
-"Coconut",
-"Pomegranate",
-"Raspberry",
-"Blackberry"
-]
-},
-{
-"name": "Jobs",
-"words": [
-"Doctor",
-"Nurse",
-"Teacher",
-"Professor",
-"Engineer",
-"Developer",
-"Designer",
-"Artist",
-"Musician",
-"Chef",
-"Baker",
-"Pilot",
-"Flight Attendant",
-"Plumber",
-"Electrician",
-"Carpenter",
-"Mechanic",
-"Accountant",
-"Lawyer",
-"Paralegal"
-]
-},
-{
-"name": "Animals",
-"words": [
-"Dog",
-"Cat",
-"Lion",
-"Tiger",
-"Elephant",
-"Giraffe",
-"Zebra",
-"Horse",
-"Cow",
-"Sheep",
-"Goat",
-"Pig",
-"Monkey",
-"Gorilla",
-"Kangaroo",
-"Koala",
-"Panda",
-"Bear",
-"Wolf",
-"Fox"
-]
-},
-{
-"name": "Sports",
-"words": [
-"Soccer",
-"Basketball",
-"Baseball",
-"Football",
-"Hockey",
-"Tennis",
-"Badminton",
-"Volleyball",
-"Cricket",
-"Rugby",
-"Golf",
-"Boxing",
-"Wrestling",
-"Swimming",
-"Surfing",
-"Skateboarding",
-"Snowboarding",
-"Cycling",
-"Running",
-"Track and Field"
-]
-},
-{
-"name": "Foods",
-"words": [
-"Pizza",
-"Burger",
-"Sandwich",
-"Tacos",
-"Burrito",
-"Sushi",
-"Ramen",
-"Pasta",
-"Spaghetti",
-"Lasagna",
-"Fried Rice",
-"Noodles",
-"Salad",
-"Soup",
-"Stew",
-"Curry",
-"Dumplings",
-"Pancakes",
-"Waffles",
-"Omelet"
-]
-},
-{
-"name": "Countries",
-"words": [
-"United States",
-"Canada",
-"Mexico",
-"Brazil",
-"Argentina",
-"United Kingdom",
-"France",
-"Germany",
-"Italy",
-"Spain",
-"Portugal",
-"Netherlands",
-"Belgium",
-"Switzerland",
-"Sweden",
-"Norway",
-"Denmark",
-"Finland",
-"Poland",
-"Greece"
-]
-},
-{
-"name": "Tech Gadgets",
-"words": [
-"Smartphone",
-"Tablet",
-"Laptop",
-"Desktop Computer",
-"Smartwatch",
-"Fitness Tracker",
-"Wireless Earbuds",
-"Bluetooth Speaker",
-"Game Console",
-"VR Headset",
-"Drone",
-"Action Camera",
-"Webcam",
-"Microphone",
-"Mechanical Keyboard",
-"Gaming Mouse",
-"Router",
-"Modem",
-"Power Bank",
-"USB Drive"
-]
-},
-{
-"name": "Apps and Platforms",
-"words": [
-"YouTube",
-"Netflix",
-"Spotify",
-"TikTok",
-"Instagram",
-"Snapchat",
-"Discord",
-"WhatsApp",
-"Telegram",
-"Reddit",
-"Twitch",
-"Zoom",
-"Google Maps",
-"Gmail",
-"Chrome Browser",
-"Apple Music",
-"SoundCloud",
-"Pinterest",
-"Canva",
-"Notion"
-]
-},
-{
-"name": "Music Genres",
-"words": [
-"Pop",
-"Rock",
-"Hip Hop",
-"R&B",
-"Jazz",
-"Blues",
-"Classical",
-"Electronic",
-"EDM",
-"House",
-"Techno",
-"Trance",
-"Dubstep",
-"Country",
-"Folk",
-"Indie",
-"Alternative",
-"Metal",
-"Punk",
-"Reggae"
-]
-},
-{
-"name": "Vehicles",
-"words": [
-"Car",
-"Sedan",
-"SUV",
-"Hatchback",
-"Coupe",
-"Convertible",
-"Pickup Truck",
-"Van",
-"Minivan",
-"Bus",
-"Coach Bus",
-"Motorcycle",
-"Scooter",
-"Bicycle",
-"Electric Bike",
-"Skateboard",
-"Longboard",
-"Train",
-"Subway",
-"Tram"
-]
-},
-{
-"name": "Household Items",
-"words": [
-"Chair",
-"Table",
-"Sofa",
-"Couch",
-"Bed",
-"Mattress",
-"Pillow",
-"Blanket",
-"Lamp",
-"Light Bulb",
-"Bookshelf",
-"Cabinet",
-"Drawer",
-"Wardrobe",
-"Mirror",
-"Clock",
-"Rug",
-"Carpet",
-"Curtains",
-"Door Mat"
-]
-},
-{
-"name": "Superheroes",
-"words": [
-"Superman",
-"Batman",
-"Spider-Man",
-"Iron Man",
-"Captain America",
-"Thor",
-"Hulk",
-"Black Widow",
-"Hawkeye",
-"Wonder Woman",
-"Flash",
-"Aquaman",
-"Doctor Strange",
-"Black Panther",
-"Ant-Man",
-"Wasp",
-"Deadpool",
-"Wolverine",
-"Professor X",
-"Vision"
-]
-}
+{"name":"Fruits","words":["Apple","Banana","Orange","Mango","Pineapple","Strawberry","Blueberry","Grapes","Watermelon","Peach","Pear","Cherry","Kiwi","Papaya","Lemon","Lime","Coconut","Pomegranate","Raspberry","Blackberry"]},
+{"name":"Jobs","words":["Doctor","Nurse","Teacher","Professor","Engineer","Developer","Designer","Artist","Musician","Chef","Baker","Pilot","Flight Attendant","Plumber","Electrician","Carpenter","Mechanic","Accountant","Lawyer","Paralegal"]},
+{"name":"Animals","words":["Dog","Cat","Lion","Tiger","Elephant","Giraffe","Zebra","Horse","Cow","Sheep","Goat","Pig","Monkey","Gorilla","Kangaroo","Koala","Panda","Bear","Wolf","Fox"]},
+{"name":"Sports","words":["Soccer","Basketball","Baseball","Football","Hockey","Tennis","Badminton","Volleyball","Cricket","Rugby","Golf","Boxing","Wrestling","Swimming","Surfing","Skateboarding","Snowboarding","Cycling","Running","Track and Field"]},
+{"name":"Foods","words":["Pizza","Burger","Sandwich","Tacos","Burrito","Sushi","Ramen","Pasta","Spaghetti","Lasagna","Fried Rice","Noodles","Salad","Soup","Stew","Curry","Dumplings","Pancakes","Waffles","Omelet"]},
+{"name":"Countries","words":["United States","Canada","Mexico","Brazil","Argentina","United Kingdom","France","Germany","Italy","Spain","Portugal","Netherlands","Belgium","Switzerland","Sweden","Norway","Denmark","Finland","Poland","Greece"]},
+{"name":"Tech Gadgets","words":["Smartphone","Tablet","Laptop","Desktop Computer","Smartwatch","Fitness Tracker","Wireless Earbuds","Bluetooth Speaker","Game Console","VR Headset","Drone","Action Camera","Webcam","Microphone","Mechanical Keyboard","Gaming Mouse","Router","Modem","Power Bank","USB Drive"]},
+{"name":"Apps and Platforms","words":["YouTube","Netflix","Spotify","TikTok","Instagram","Snapchat","Discord","WhatsApp","Telegram","Reddit","Twitch","Zoom","Google Maps","Gmail","Chrome Browser","Apple Music","SoundCloud","Pinterest","Canva","Notion"]},
+{"name":"Music Genres","words":["Pop","Rock","Hip Hop","R&B","Jazz","Blues","Classical","Electronic","EDM","House","Techno","Trance","Dubstep","Country","Folk","Indie","Alternative","Metal","Punk","Reggae"]},
+{"name":"Vehicles","words":["Car","Sedan","SUV","Hatchback","Coupe","Convertible","Pickup Truck","Van","Minivan","Bus","Coach Bus","Motorcycle","Scooter","Bicycle","Electric Bike","Skateboard","Longboard","Train","Subway","Tram"]},
+{"name":"Household Items","words":["Chair","Table","Sofa","Couch","Bed","Mattress","Pillow","Blanket","Lamp","Light Bulb","Bookshelf","Cabinet","Drawer","Wardrobe","Mirror","Clock","Rug","Carpet","Curtains","Door Mat"]},
+{"name":"Superheroes","words":["Superman","Batman","Spider-Man","Iron Man","Captain America","Thor","Hulk","Black Widow","Hawkeye","Wonder Woman","Flash","Aquaman","Doctor Strange","Black Panther","Ant-Man","Wasp","Deadpool","Wolverine","Professor X","Vision"]}
 ]
 };
-
-
 
 /* =========================
    1) Utilities + UI helpers
@@ -821,6 +1108,18 @@ function safeJsonParse(text){
   try { return { ok:true, data: JSON.parse(text) }; }
   catch(e){ return { ok:false, err: e?.message || "Invalid JSON" }; }
 }
+
+function openHelp(){
+  $("helpModal").classList.add("show");
+}
+
+function closeHelp(){
+  $("helpModal").classList.remove("show");
+}
+
+$("btnHelp").addEventListener("click", openHelp);
+$("btnHelpClose").addEventListener("click", closeHelp);
+
 
 /* =======================================
    2) Required JSON schema + prompt builder
@@ -874,13 +1173,42 @@ const state = {
   conns: new Map(),     // for host: peerId -> DataConnection
 
   // players array is authoritative on host, mirrored on joiners
-  players: [],          // {id, name, isHost, connected, hasVoted, voteFor}
+  players: [],          // {id, name, isHost, connected, hasVoted, voteFor, lastSeen?}
   phase: "home",        // home | lobby | round | vote | results
   round: null,          // host-authoritative round data (mirrored)
   mySecret: null,       // {role, word, categoryName}
   dataset: null,        // host dataset
   datasetSummary: "No JSON loaded yet."
 };
+
+/* ===========================
+   3.1) Auto-rejoin session helpers
+   =========================== */
+const LS = {
+  name: "wi_last_name",
+  room: "wi_last_room",
+  role: "wi_last_role" // "host" | "join"
+};
+
+function saveLastSession(role){
+  try{
+    localStorage.setItem(LS.name, state.myName || "");
+    localStorage.setItem(LS.room, state.roomCode || "");
+    localStorage.setItem(LS.role, role);
+  }catch(e){}
+}
+
+function readLastSession(){
+  try{
+    return {
+      name: (localStorage.getItem(LS.name) || "").trim(),
+      room: (localStorage.getItem(LS.room) || "").trim(),
+      role: (localStorage.getItem(LS.role) || "").trim()
+    };
+  }catch(e){
+    return {name:"", room:"", role:""};
+  }
+}
 
 function saveDatasetToLocal(){
   try{
@@ -909,7 +1237,6 @@ function loadDatasetFromLocal(){
     updateDatasetUI();
   }
 }
-
 
 /* ============================
    4) Dataset validation + UI
@@ -1106,6 +1433,10 @@ async function hostRoom(){
 
   state.peer.on("open", (id)=>{
     setStatus(true, `Hosting room ${state.roomCode}`);
+
+    // persist session
+    saveLastSession("host");
+
     // host is also a player
     state.players = [{
       id: state.myPeerId,
@@ -1113,7 +1444,8 @@ async function hostRoom(){
       isHost: true,
       connected: true,
       hasVoted: false,
-      voteFor: null
+      voteFor: null,
+      lastSeen: Date.now()
     }];
 
     // show lobby
@@ -1129,6 +1461,9 @@ async function hostRoom(){
     updateDatasetUI();
     renderAllPlayerLists();
     updateVoteSelectOptions();
+
+    // start keep-alive after host is live
+    startKeepAlive();
   });
 
   state.peer.on("connection", (conn)=>{
@@ -1204,6 +1539,10 @@ async function joinRoom(){
 
     state.hostConn.on("open", ()=>{
       setStatus(true, `Connected to room ${state.roomCode}`);
+
+      // persist session
+      saveLastSession("join");
+
       // say hello to host
       sendToHost({ t:"hello", name: state.myName, id: state.myPeerId });
     });
@@ -1227,6 +1566,9 @@ async function joinRoom(){
 }
 
 function safeCleanupPeer(){
+  // stop keep-alive if any
+  stopKeepAlive();
+
   try{
     if(state.hostConn){ state.hostConn.close(); state.hostConn = null; }
   }catch(e){}
@@ -1240,6 +1582,7 @@ function safeCleanupPeer(){
 }
 
 function leaveRoom(){
+  stopKeepAlive();
   safeCleanupPeer();
   state.players = [];
   state.round = null;
@@ -1275,11 +1618,52 @@ function updateVoteSelectOptions(){
   const sel = $("selVote");
   sel.innerHTML = "";
   for (const p of state.players){
-    // do not allow voting self? many games allow, but usually no.
     const opt = document.createElement("option");
     opt.value = p.id;
     opt.textContent = p.name + (p.isHost ? " (Host)" : "");
     sel.appendChild(opt);
+  }
+}
+
+/* ===========================
+   6.1) Host Keep-Alive Ping
+   =========================== */
+let keepAliveTimer = null;
+const KEEPALIVE_MS = 15000;        // ping interval
+const STALE_AFTER_MS = 45000;      // mark offline after 45s without pong
+
+function startKeepAlive(){
+  stopKeepAlive();
+  if(!state.isHost) return;
+
+  keepAliveTimer = setInterval(() => {
+    const now = Date.now();
+
+    // keep the data channel active
+    hostBroadcast({ t:"ping", ts: now });
+
+    // mark stale as offline
+    let changed = false;
+    for(const p of state.players){
+      if(p.isHost) continue;
+      if(!p.connected) continue;
+      if(p.lastSeen && (now - p.lastSeen) > STALE_AFTER_MS){
+        p.connected = false;
+        changed = true;
+      }
+    }
+
+    if(changed){
+      broadcastRoster();
+      renderAllPlayerLists();
+    }
+  }, KEEPALIVE_MS);
+}
+
+function stopKeepAlive(){
+  if(keepAliveTimer){
+    clearInterval(keepAliveTimer);
+    keepAliveTimer = null;
   }
 }
 
@@ -1288,6 +1672,16 @@ function updateVoteSelectOptions(){
    ================================= */
 function onHostMessage(conn, msg){
   if(!msg || typeof msg !== "object") return;
+
+  // keep-alive pong
+  if(msg.t === "pong"){
+    const p = state.players.find(x => x.id === conn.peer);
+    if(p){
+      p.connected = true;
+      p.lastSeen = Date.now();
+    }
+    return;
+  }
 
   if(msg.t === "hello"){
     const joinerId = msg.id || conn.peer;
@@ -1302,12 +1696,14 @@ function onHostMessage(conn, msg){
         isHost: false,
         connected: true,
         hasVoted: false,
-        voteFor: null
+        voteFor: null,
+        lastSeen: Date.now()
       };
       state.players.push(p);
     }else{
       p.name = joinerName;
       p.connected = true;
+      p.lastSeen = Date.now();
     }
 
     // send current roster to all
@@ -1339,8 +1735,6 @@ function onHostMessage(conn, msg){
   }
 
   if(msg.t === "revealRequest"){
-    // optional: allow joiner to request their secret again (we do one-time by default)
-    // We'll deny by default to reduce peeking. You can change this behavior.
     hostSendTo(conn.peer, { t:"toast", msg:"Reveal is one-time this round (ask host to restart round if needed)." });
     return;
   }
@@ -1351,6 +1745,12 @@ function onHostMessage(conn, msg){
    =========================== */
 function onJoinerMessage(msg){
   if(!msg || typeof msg !== "object") return;
+
+  // keep-alive ping
+  if(msg.t === "ping"){
+    sendToHost({ t:"pong", ts: msg.ts || Date.now() });
+    return;
+  }
 
   if(msg.t === "roster"){
     state.players = msg.players || [];
@@ -1381,7 +1781,6 @@ function onJoinerMessage(msg){
   }
 
   if(msg.t === "assignSecret"){
-    // host sends secret for THIS player only
     state.mySecret = msg.secret;
     updateRoundInfoUI();
     return;
@@ -1465,10 +1864,9 @@ function startRoundHost(){
   state.round = {
     id: "r-" + Date.now(),
     categoryName: category.name,
-    genuineWord,         // host keeps it
+    genuineWord,
     imposterId: imposter.id,
     imposterMode: mode,
-    // (we do not broadcast genuineWord to everyone; secrets are per-player)
     votesOpen: false,
     results: null
   };
@@ -1479,14 +1877,18 @@ function startRoundHost(){
   // Assign secrets to each connected player (privately)
   for (const p of onlinePlayers){
     const isImposter = (p.id === state.round.imposterId);
-    const secret = {
-      role: isImposter ? "IMPOSTER" : "GENUINE",
-      word: isImposter ? imposterWord : genuineWord,
-      categoryName: category.name
-    };
+    
+	const hideCategory = isImposter && mode === "blank";
+
+	const secret = {
+	  role: isImposter ? "IMPOSTER" : "GENUINE",
+	  word: isImposter ? imposterWord : genuineWord,
+	  categoryName: hideCategory ? "" : category.name
+	};
+
 
     if(p.id === state.myPeerId){
-      state.mySecret = secret; // host's secret local
+      state.mySecret = secret;
     }else{
       hostSendTo(p.id, { t:"assignSecret", secret });
     }
@@ -1495,7 +1897,6 @@ function startRoundHost(){
   // Broadcast phase without leaking genuineWord
   hostBroadcast({ t:"phase", phase:"round", round: scrubRoundForClients() });
 
-  // Host UI update
   showSection("secRound");
   updateRoundInfoUI();
   renderAllPlayerLists();
@@ -1507,7 +1908,7 @@ function scrubRoundForClients(){
   return {
     id: state.round.id,
     categoryName: state.round.categoryName,
-    imposterId: null, // hidden
+    imposterId: null,
     imposterMode: state.round.imposterMode,
     votesOpen: state.round.votesOpen,
     results: state.round.results
@@ -1530,16 +1931,13 @@ function openVotingHost(){
 
 function closeVotingHost(){
   if(!state.isHost || state.phase !== "vote") return;
-  // keep in vote phase but prevent further submits? simplest: just ignore new vote messages after close
   state.round.votesOpen = false;
   toast("Voting closed");
   hostBroadcast({ t:"toast", msg:"Host closed voting." });
-  // still keep phase as vote (host can reveal results)
 }
 
 function submitVote(){
   if(state.isHost){
-    // host submits locally
     if(state.phase !== "vote") return;
     const voteFor = $("selVote").value;
 
@@ -1561,7 +1959,6 @@ function submitVote(){
     return;
   }
 
-  // joiner sends to host
   if(state.phase !== "vote"){
     toast("Voting is not open yet");
     return;
@@ -1574,7 +1971,6 @@ function submitVote(){
 function computeResultsHost(){
   if(!state.isHost || state.phase !== "vote" || !state.round) return;
 
-  // ensure all connected players voted
   const connected = state.players.filter(p => p.connected);
   const missing = connected.filter(p => !p.hasVoted);
   if(missing.length){
@@ -1582,15 +1978,13 @@ function computeResultsHost(){
     return;
   }
 
-  // tally
-  const tally = new Map(); // targetId -> count
+  const tally = new Map();
   for (const p of connected){
     const v = p.voteFor;
     if(!v) continue;
     tally.set(v, (tally.get(v) || 0) + 1);
   }
 
-  // find most voted
   let maxVotes = -1;
   let eliminatedId = null;
   for (const [id, cnt] of tally.entries()){
@@ -1611,13 +2005,11 @@ function computeResultsHost(){
     imposterId,
     categoryName: state.round.categoryName,
     genuineWord: state.round.genuineWord,
-    // include per-player vote breakdown for fun (you can hide later)
     votes: connected.map(p => ({ voterId: p.id, voterName: p.name, voteFor: p.voteFor }))
   };
 
   state.phase = "results";
 
-  // Broadcast results safely (this is end, so ok to reveal word)
   hostBroadcast({ t:"results", round: {
     id: state.round.id,
     categoryName: state.round.categoryName,
@@ -1633,12 +2025,10 @@ function computeResultsHost(){
 
 function nextRoundHost(){
   if(!state.isHost) return;
-  // Go back to lobby but keep players and dataset
   state.phase = "lobby";
   state.round = null;
   state.mySecret = null;
 
-  // reset vote flags
   for (const p of state.players){
     p.hasVoted = false;
     p.voteFor = null;
@@ -1667,11 +2057,22 @@ function backToLobbyCancelHost(){
 function updateRoundInfoUI(){
   if(state.phase !== "round") return;
 
-  const cat = state.mySecret?.categoryName || state.round?.categoryName || "—";
-  $("roundInfo").textContent = `Category: ${cat}. Reveal your word on your phone. Discuss offline, then host opens voting.`;
+  const isHiddenImposter =
+    state.mySecret?.role === "IMPOSTER" &&
+    (state.round?.imposterMode === "blank" || state.mySecret?.word === "???");
 
-  // host only controls already shown
+  const cat = state.mySecret?.categoryName || state.round?.categoryName || "";
+
+  if(isHiddenImposter){
+    $("roundInfo").textContent =
+      "Reveal your word on your phone. Discuss offline, then host opens voting.";
+  }else{
+    const prefix = cat ? `Category: ${cat}. ` : "";
+    $("roundInfo").textContent =
+      `${prefix}Reveal your word on your phone. Discuss offline, then host opens voting.`;
+  }
 }
+
 
 function updateVoteUI(){
   if(state.phase !== "vote") return;
@@ -1707,18 +2108,15 @@ function updateResultsUI(){
     `Category: <b>${r.categoryName}</b><br>` +
     `Genuine word: <b>${r.genuineWord}</b>`;
 
-  // tally list
   const ul = $("tallyList");
   ul.innerHTML = "";
 
-  // rebuild tallies
   const tally = new Map();
   for (const v of r.votes){
     if(!v.voteFor) continue;
     tally.set(v.voteFor, (tally.get(v.voteFor) || 0) + 1);
   }
 
-  // sort by count
   const entries = [...tally.entries()].sort((a,b)=>b[1]-a[1]);
 
   for (const [targetId, cnt] of entries){
@@ -1757,7 +2155,6 @@ function showReveal(){
   }
 
   if(!state.mySecret){
-    // joiner might not have received secret yet
     if(!state.isHost){
       sendToHost({ t:"revealRequest" });
     }
@@ -1765,7 +2162,6 @@ function showReveal(){
     return;
   }
 
-  // One-time reveal per round for anti-peek (simple rule)
   if(revealUsedThisRound){
     toast("Reveal is one-time this round");
     return;
@@ -1773,7 +2169,14 @@ function showReveal(){
 
   revealUsedThisRound = true;
 
-  $("revealTitle").textContent = `Category: ${state.mySecret.categoryName}`;
+  const isHiddenImposter =
+  state.mySecret?.role === "IMPOSTER" &&
+  (state.round?.imposterMode === "blank" || state.mySecret?.word === "???");
+
+  $("revealTitle").textContent =
+  isHiddenImposter ? "Category: ???" : `Category: ${state.mySecret.categoryName}`;
+
+  
   $("revealWord").textContent = state.mySecret.word;
   $("revealRole").innerHTML = `Role: <b>${state.mySecret.role}</b>`;
 
@@ -1783,23 +2186,6 @@ function showReveal(){
 function hideReveal(){
   $("revealOverlay").classList.remove("show");
 }
-
-window.addEventListener("keydown", (e)=>{
-  if(e.key === "Escape") hideReveal();
-});
-
-/* ===========================
-   11) Host: Load JSON + Copy prompt
-   =========================== */
-$("btnCopyPrompt").addEventListener("click", async ()=>{
-  const p = buildChatGPTPrompt();
-  await navigator.clipboard.writeText(p);
-  toast("Prompt copied ✅ Paste into ChatGPT");
-});
-
-$("btnLoadJson").addEventListener("click", ()=>{
-  $("fileJson").click();
-});
 
 function openJsonModal(){
   $("txtJsonPaste").value = "";
@@ -1811,9 +2197,24 @@ function closeJsonModal(){
   $("jsonModal").classList.remove("show");
 }
 
+window.addEventListener("keydown", (e)=>{
+  if(e.key === "Escape"){
+    hideReveal();
+    closeJsonModal();
+  }
+});
+
+/* ===========================
+   11) Host: Load JSON + Copy prompt
+   =========================== */
+$("btnCopyPrompt").addEventListener("click", async ()=>{
+  const p = buildChatGPTPrompt();
+  await navigator.clipboard.writeText(p);
+  toast("Prompt copied ✅ Paste into ChatGPT");
+});
+
 $("btnLoadJson").addEventListener("click", openJsonModal);
 $("btnJsonCancel").addEventListener("click", closeJsonModal);
-
 
 $("btnJsonLoadConfirm").addEventListener("click", ()=>{
   const text = ($("txtJsonPaste").value || "").trim();
@@ -1840,32 +2241,6 @@ $("btnJsonLoadConfirm").addEventListener("click", ()=>{
   closeJsonModal();
   toast("JSON loaded ✅");
 });
-
-
-/*
-$("fileJson").addEventListener("change", async (e)=>{
-  const f = e.target.files?.[0];
-  if(!f) return;
-
-  const text = await f.text();
-  const parsed = safeJsonParse(text);
-  if(!parsed.ok){
-    toast("Invalid JSON: " + parsed.err);
-    return;
-  }
-
-  const v = validateDataset(parsed.data);
-  if(!v.ok){
-    toast("Dataset error: " + v.msg);
-    return;
-  }
-
-  state.dataset = parsed.data;
-  saveDatasetToLocal();
-  updateDatasetUI();
-  toast("JSON loaded ✅");
-});
-*/
 
 /* ===========================
    12) Wire UI events
@@ -1925,28 +2300,65 @@ function resetRoundRevealFlagIfNeeded(){
   revealUsedThisRound = false;
 }
 
-function patchPhaseTransitions(){
-  // whenever host changes phase, reset reveal flag
-  // We'll do a quick observer via setter-ish usage in functions:
-  // call resetRoundRevealFlagIfNeeded() when entering round.
-}
 const _startRoundHost = startRoundHost;
 startRoundHost = function(){
   resetRoundRevealFlagIfNeeded();
   _startRoundHost();
 };
-const _onJoinerMessage = onJoinerMessage;
+
+const _onJoinerMessageWrapped = onJoinerMessage;
 onJoinerMessage = function(msg){
   if(msg && msg.t === "phase" && msg.phase === "round") resetRoundRevealFlagIfNeeded();
   if(msg && msg.t === "roster" && msg.phase === "round") resetRoundRevealFlagIfNeeded();
-  _onJoinerMessage(msg);
+  _onJoinerMessageWrapped(msg);
 };
 
 /* ===========================
-   14) Initialize
+   14) Initialize + Auto-Rejoin
    =========================== */
 setStatus(false, "Not connected");
 updateDatasetUI();
+
+(() => {
+  const last = readLastSession();
+  if(last.name) $("inpName").value = last.name;
+  if(last.room && last.room.length === 4) $("inpRoom").value = last.room;
+
+  // Auto rejoin ONLY for joiners (refresh-safe)
+  if(last.role === "join" && last.name && last.room && last.room.length === 4){
+    toast(`Rejoining room ${last.room}…`);
+    setTimeout(() => joinRoom(), 500);
+  }
+})();
+
+/* ===========================
+   15) Mini test cases
+   Run with: ?test=1
+   =========================== */
+(function runTests(){
+  const params = new URLSearchParams(location.search);
+  if(params.get("test") !== "1") return;
+
+  const assert = (name, cond) => {
+    if(!cond) throw new Error("Test failed: " + name);
+    console.log("✅", name);
+  };
+
+  assert("clampRoomDigits strips non-digits", clampRoomDigits("12a3") === "123");
+  assert("clampRoomDigits max 4", clampRoomDigits("123456") === "1234");
+  assert("roomIdToPeerId format", roomIdToPeerId("4821") === "room-4821");
+
+  const ok = safeJsonParse('{"a":1}');
+  assert("safeJsonParse ok", ok.ok && ok.data.a === 1);
+
+  const bad = safeJsonParse('{"a":}');
+  assert("safeJsonParse bad", bad.ok === false);
+
+  assert("validateDataset default ok", validateDataset(DEFAULT_WORDS_JSON).ok === true);
+
+  console.log("All tests passed ✅");
+})();
+
 </script>
 </body>
 </html>
