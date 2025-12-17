@@ -1,0 +1,1703 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta name="description" content="SK Games — Word Shuffle — assign words, discuss offline, shuffle, then guess the previous owner. Host-controlled voting + automatic scoring.">
+  <meta property="og:title" content="SK Games — Word Shuffle">
+  <meta property="og:description" content="Word Shuffle — assign words, discuss offline, shuffle, then guess the previous owner. Host-controlled voting + automatic scoring">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://deyeskay.github.io/hub/">
+  <meta property="og:image" content="https://deyeskay.github.io/hub/sk-icon.png">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" type="image/svg+xml" href="https://deyeskay.github.io/hub/favicon.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0c0c0f">  
+  <title>SK Games | Word Shuffle</title>
+  <meta name="description" content="Word Shuffle — assign words, discuss offline, shuffle, then guess the previous owner. Host-controlled voting + automatic scoring." />
+  <link rel="icon" href="data:,">
+  <!-- <link rel="stylesheet" href="./style.css" /> -->
+  <style>
+  :root{
+  --bg:#0b0d13;
+  --panel:#101524;
+  --card:#141b2e;
+  --card2:#0f1424;
+  --text:#e8ecff;
+  --muted:#a8b0cf;
+  --line:rgba(255,255,255,.08);
+  --line2:rgba(255,255,255,.12);
+  --accent:#6aa6ff;
+  --accent2:#7cf0c1;
+  --danger:#ff5f6d;
+  --shadow:0 18px 60px rgba(0,0,0,.35);
+  --r:18px;
+  --r2:14px;
+  --pad:14px;
+  --tap:52px;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background:
+    radial-gradient(900px 600px at 10% -10%, rgba(106,166,255,.22), transparent 60%),
+    radial-gradient(900px 600px at 90% 0%, rgba(124,240,193,.16), transparent 65%),
+    radial-gradient(900px 700px at 40% 120%, rgba(255,95,109,.10), transparent 60%),
+    var(--bg);
+  color:var(--text);
+}
+
+.app{
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  padding:14px 12px 18px;
+  max-width:780px;
+  margin:0 auto;
+}
+
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 10px;
+  border:1px solid var(--line);
+  background:rgba(16,21,36,.65);
+  backdrop-filter: blur(10px);
+  border-radius:22px;
+  box-shadow:var(--shadow);
+}
+
+.brand{display:flex; align-items:center; gap:10px; min-width:0}
+.brand__logo{
+  width:38px; height:38px;
+  border-radius:14px;
+  display:grid; place-items:center;
+  background:linear-gradient(145deg, rgba(106,166,255,.28), rgba(124,240,193,.18));
+  border:1px solid var(--line2);
+  font-weight:800;
+  letter-spacing:.5px;
+}
+.brand__text{min-width:0}
+.brand__title{font-weight:800; letter-spacing:.2px}
+.brand__sub{font-size:12px; color:var(--muted); margin-top:2px}
+
+.topbar__right{display:flex; align-items:center; gap:8px}
+
+.pill{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 10px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:rgba(20,27,46,.75);
+  font-size:12px;
+  white-space:nowrap;
+}
+.pill--mono{font-family:var(--mono); gap:10px}
+.dot{
+  width:9px; height:9px; border-radius:50%;
+  background:rgba(255,255,255,.25);
+  box-shadow:0 0 0 4px rgba(255,255,255,.06);
+}
+.mono{font-family:var(--mono)}
+.muted{color:var(--muted)}
+.tiny{font-size:12px}
+.emoji{font-size:16px}
+
+.iconbtn{
+  width:40px; height:40px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:rgba(20,27,46,.75);
+  color:var(--text);
+  display:grid; place-items:center;
+  cursor:pointer;
+  user-select:none;
+}
+.iconbtn:active{transform:scale(.98)}
+
+.screen{flex:1; display:flex; align-items:stretch}
+.panel{
+  width:100%;
+  display:none;
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:rgba(16,21,36,.55);
+  backdrop-filter: blur(10px);
+  box-shadow:var(--shadow);
+  padding:16px;
+}
+.panel--active{display:block}
+
+.h1{font-size:22px; margin:0 0 6px}
+.h2{font-size:18px; margin:0}
+.form{margin-top:12px; display:flex; flex-direction:column; gap:10px}
+.label{font-size:12px; color:var(--muted); margin-bottom:2px; display:block}
+.input{
+  height:var(--tap);
+  padding:0 14px;
+  border-radius:16px;
+  border:1px solid var(--line);
+  background:rgba(20,27,46,.75);
+  color:var(--text);
+  outline:none;
+  font-size:15px;
+}
+.input:focus{border-color:rgba(106,166,255,.55); box-shadow:0 0 0 4px rgba(106,166,255,.10)}
+.select{
+  height:var(--tap);
+  padding:0 14px;
+  border-radius:16px;
+  border:1px solid var(--line);
+  background:rgba(20,27,46,.75);
+  color:var(--text);
+  outline:none;
+  font-size:15px;
+  width:100%;
+}
+.textarea{
+  width:100%;
+  min-height:180px;
+  resize:vertical;
+  padding:12px 12px;
+  border-radius:16px;
+  border:1px solid var(--line);
+  background:rgba(20,27,46,.75);
+  color:var(--text);
+  outline:none;
+  font-size:13px;
+  font-family:var(--mono);
+  line-height:1.35;
+}
+.textarea:focus{border-color:rgba(106,166,255,.55); box-shadow:0 0 0 4px rgba(106,166,255,.10)}
+
+.btn{
+  height:var(--tap);
+  border-radius:16px;
+  border:1px solid var(--line);
+  background:rgba(20,27,46,.75);
+  color:var(--text);
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  padding:0 14px;
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:10px;
+  user-select:none;
+}
+.btn:active{transform:scale(.99)}
+.btn:disabled{opacity:.55; cursor:not-allowed}
+
+.btn--primary{
+  background:linear-gradient(145deg, rgba(106,166,255,.25), rgba(106,166,255,.12));
+  border-color:rgba(106,166,255,.35);
+}
+.btn--danger{
+  background:linear-gradient(145deg, rgba(255,95,109,.22), rgba(255,95,109,.10));
+  border-color:rgba(255,95,109,.35);
+}
+.btn--wide{min-width:160px}
+
+.grid2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+@media (max-width:420px){
+  .grid2{grid-template-columns:1fr}
+  .btn--wide{min-width:unset}
+}
+
+.divider{
+  height:1px;
+  background:var(--line);
+  margin:6px 0;
+}
+
+.roomHead{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-bottom:12px;
+}
+.roomHead__left{display:flex; flex-direction:column; gap:8px}
+.roomMeta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+}
+.roomHead__right{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:flex-start;
+}
+#playerTopControls{display:none}
+
+.chip{
+  height:38px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:rgba(20,27,46,.75);
+  color:var(--text);
+  padding:0 12px;
+  font-weight:800;
+  cursor:pointer;
+  user-select:none;
+}
+.chip--ghost{
+  background:rgba(20,27,46,.35);
+}
+.chip:active{transform:scale(.99)}
+
+.badge{
+  min-width:22px;
+  height:22px;
+  border-radius:999px;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-weight:900;
+  font-size:12px;
+  background:rgba(106,166,255,.20);
+  border:1px solid rgba(106,166,255,.32);
+  padding:0 7px;
+}
+
+.stack{display:flex; flex-direction:column; gap:12px}
+
+.card{
+  border-radius:22px;
+  border:1px solid var(--line);
+  background:rgba(20,27,46,.75);
+  box-shadow:0 12px 40px rgba(0,0,0,.26);
+  padding:14px;
+}
+.cardHead{
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.cardTitle{font-weight:900}
+.bigWord{
+  border-radius:18px;
+  border:1px solid var(--line);
+  background:rgba(15,20,36,.65);
+  padding:16px 14px;
+  font-size:30px;
+  font-weight:1000;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  text-align:center;
+  margin-top:6px;
+}
+.statusCard{
+  border-radius:22px;
+  border:1px solid var(--line);
+  background:rgba(20,27,46,.55);
+  padding:12px 14px;
+  margin-bottom:12px;
+}
+.statusTitle{font-weight:900; margin-bottom:6px}
+.statusLine{font-size:14px; font-weight:800}
+.statusHint{margin-top:4px}
+
+.selectRow{margin-top:10px}
+#voteAfterText{margin-top:8px}
+
+.resultsGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:10px;
+}
+@media (max-width:620px){
+  .resultsGrid{grid-template-columns:1fr}
+}
+.resultsCol{
+  border:1px solid var(--line);
+  background:rgba(15,20,36,.55);
+  border-radius:18px;
+  padding:10px 12px;
+}
+.resultsLabel{font-size:12px; color:var(--muted)}
+.resultsValue{font-weight:1000; margin-top:6px}
+
+.list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:10px;
+}
+.row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px 12px;
+  border-radius:16px;
+  border:1px solid var(--line);
+  background:rgba(15,20,36,.55);
+}
+.row__left{display:flex; align-items:center; gap:10px; min-width:0}
+.avatar{
+  width:34px; height:34px;
+  border-radius:14px;
+  display:grid; place-items:center;
+  border:1px solid var(--line2);
+  background:linear-gradient(145deg, rgba(106,166,255,.18), rgba(124,240,193,.12));
+  font-weight:1000;
+}
+.name{
+  font-weight:900;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:240px;
+}
+.sub{
+  font-size:12px;
+  color:var(--muted);
+}
+.kpi{
+  font-family:var(--mono);
+  font-weight:1000;
+  opacity:.95;
+}
+
+.modalBackdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  padding:12px;
+  z-index:50;
+}
+.modalBackdrop--show{display:flex}
+.modal{
+  width:min(720px, 100%);
+  max-height:82vh;
+  overflow:hidden;
+  border-radius:24px;
+  border:1px solid var(--line);
+  background:rgba(16,21,36,.92);
+  backdrop-filter: blur(14px);
+  box-shadow:var(--shadow);
+  display:flex;
+  flex-direction:column;
+}
+.modalHead{
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:14px 14px 10px;
+  border-bottom:1px solid var(--line);
+}
+.modalTitle{font-weight:1000}
+.modalBody{padding:12px 14px 14px; overflow:auto}
+.bullets{margin:0; padding-left:18px; display:flex; flex-direction:column; gap:8px}
+
+.footer{padding:4px 2px 0; text-align:center}
+
+.hidden{display:none !important}
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand__logo">SK</div>
+        <div class="brand__text">
+          <div class="brand__title">Word Shuffle</div>
+          <div class="brand__sub">Offline discussion · Shuffle · Vote</div>
+        </div>
+      </div>
+
+      <div class="topbar__right">
+        <div class="pill" id="netPill">
+          <span class="dot" id="netDot"></span>
+          <span id="netText">Not connected</span>
+        </div>
+        <button class="iconbtn" id="howBtn" title="How to play" aria-label="How to play">
+          <span>?</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="screen">
+      <section class="panel panel--active" id="screenJoin" aria-labelledby="joinTitle">
+        <h1 class="h1" id="joinTitle">Join or Host</h1>
+        <p class="muted">Create a room, share the 4-digit ID, and play together in the same room (no in-app chat).</p>
+
+        <div class="form">
+          <label class="label" for="nameInput">Your name</label>
+          <input class="input" id="nameInput" autocomplete="nickname" maxlength="18" placeholder="e.g., Mohith" />
+
+          <div class="grid2">
+            <button class="btn btn--primary" id="hostBtn">Host (Auto Create 4-digit ID)</button>
+            <button class="btn" id="reconnectBtn" title="Reconnect to last room">Reconnect</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <label class="label" for="roomInput">Room ID (4 digits)</label>
+          <input class="input" id="roomInput" inputmode="numeric" maxlength="4" placeholder="e.g., 4821" />
+
+          <button class="btn btn--primary" id="joinBtn">Join</button>
+
+          <p class="tiny muted">(If a room ID is already taken, host must choose a different code.)</p>
+        </div>
+      </section>
+
+      <section class="panel" id="screenRoom" aria-labelledby="roomTitle">
+        <div class="roomHead">
+          <div class="roomHead__left">
+            <h2 class="h2" id="roomTitle">Room</h2>
+            <div class="roomMeta">
+              <div class="pill pill--mono">
+                <span class="muted">Room</span>
+                <span class="mono" id="roomCode">—</span>
+              </div>
+              <button class="chip" id="copyRoomBtn" title="Copy Room ID">
+                Copy ID
+              </button>
+              <div class="pill pill--mono">
+                <span class="muted">You</span>
+                <span class="mono" id="meName">—</span>
+              </div>
+              <div class="pill" id="rolePill">Player</div>
+              <button class="chip chip--ghost" id="playersBtn" title="Players">
+                <span class="emoji">👥</span>
+                <span class="badge" id="playerCountBadge">0</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="roomHead__right" id="hostTopControls">
+            <button class="btn btn--primary btn--wide" id="hostMainBtn">Start Round</button>
+            <button class="btn btn--danger btn--wide" id="leaveBtn">Leave Room</button>
+          </div>
+
+          <div class="roomHead__right" id="playerTopControls">
+            <button class="btn btn--danger btn--wide" id="leaveBtn2">Leave Room</button>
+          </div>
+        </div>
+
+        <div class="statusCard">
+          <div class="statusTitle">Status</div>
+          <div class="statusLine" id="statusLine">Waiting for host…</div>
+          <div class="statusHint muted" id="statusHint">When the host starts, you’ll receive a secret word.</div>
+        </div>
+
+        <section class="stack">
+          <div class="card" id="myWordCard">
+            <div class="cardHead">
+              <div>
+                <div class="cardTitle">Your secret</div>
+                <div class="muted tiny" id="myWordSubtitle">Hidden until round starts.</div>
+              </div>
+              <button class="chip" id="toggleWordBtn" disabled>Reveal</button>
+            </div>
+            <div class="bigWord" id="myWordText">—</div>
+            <div class="muted tiny" id="myWordTip">Tap Reveal to show. Tap again (or press Esc) to hide quickly.</div>
+          </div>
+
+          <div class="card" id="voteCard">
+            <div class="cardHead">
+              <div>
+                <div class="cardTitle">Vote</div>
+                <div class="muted tiny" id="voteSubtitle">Voting is closed.</div>
+              </div>
+            </div>
+
+            <div class="muted tiny" id="voteInstruction">Select who you think had your current word before the shuffle.</div>
+
+            <div class="selectRow">
+              <label class="label" for="voteSelect">Nominate player</label>
+              <select class="select" id="voteSelect" disabled></select>
+            </div>
+
+            <button class="btn btn--primary" id="submitVoteBtn" disabled>Submit Vote</button>
+            <div class="tiny muted" id="voteAfterText"></div>
+          </div>
+
+          <div class="card" id="resultsCard">
+            <div class="cardHead">
+              <div>
+                <div class="cardTitle">Results</div>
+                <div class="muted tiny">Scores update automatically after host closes voting.</div>
+              </div>
+            </div>
+            <div class="resultsGrid">
+              <div class="resultsCol">
+                <div class="resultsLabel">Your answer</div>
+                <div class="resultsValue" id="myGuessResult">—</div>
+              </div>
+              <div class="resultsCol">
+                <div class="resultsLabel">Correct previous owner</div>
+                <div class="resultsValue" id="myCorrectResult">—</div>
+              </div>
+              <div class="resultsCol">
+                <div class="resultsLabel">Point earned</div>
+                <div class="resultsValue" id="myPointResult">—</div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="cardTitle">Scoreboard</div>
+            <div class="list" id="scoreList"></div>
+          </div>
+
+          <div class="card" id="hostControlsCard">
+            <div class="cardHead">
+              <div>
+                <div class="cardTitle">Host Controls</div>
+                <div class="muted tiny">Load a words dataset or use the built-in default list.</div>
+              </div>
+            </div>
+
+            <div class="grid2">
+              <button class="btn" id="copyPromptBtn">Copy prompt for ChatGPT (generate JSON)</button>
+              <button class="btn" id="loadJsonBtn">Load JSON (host)</button>
+            </div>
+
+            <div class="tiny muted" id="datasetSummary">Dataset: default words (built-in)</div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <div class="modalBackdrop" id="playersModal" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="playersModalTitle">
+        <div class="modalHead">
+          <div>
+            <div class="modalTitle" id="playersModalTitle">Players</div>
+            <div class="muted tiny" id="playersModalSub">Connected players in the room.</div>
+          </div>
+          <button class="iconbtn" id="playersCloseBtn" aria-label="Close">
+            <span>✕</span>
+          </button>
+        </div>
+        <div class="modalBody">
+          <div class="list" id="playersList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modalBackdrop" id="loadModal" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="loadModalTitle">
+        <div class="modalHead">
+          <div>
+            <div class="modalTitle" id="loadModalTitle">Paste words JSON</div>
+            <div class="muted tiny">Supports {"words":[...]} or {"categories":[{"name":"...","words":[...]}]}.</div>
+          </div>
+          <button class="iconbtn" id="loadCloseBtn" aria-label="Close">
+            <span>✕</span>
+          </button>
+        </div>
+        <div class="modalBody">
+          <textarea class="textarea" id="jsonTextarea" placeholder='{"words":["apple","train","doctor"]}'></textarea>
+          <div class="grid2">
+            <button class="btn btn--primary" id="applyJsonBtn">Load JSON</button>
+            <button class="btn" id="cancelJsonBtn">Cancel</button>
+          </div>
+          <div class="tiny muted" id="jsonError"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modalBackdrop" id="howModal" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="howModalTitle">
+        <div class="modalHead">
+          <div>
+            <div class="modalTitle" id="howModalTitle">How to Play</div>
+            <div class="muted tiny">Single-room, offline discussion. Host controls the flow.</div>
+          </div>
+          <button class="iconbtn" id="howCloseBtn" aria-label="Close">
+            <span>✕</span>
+          </button>
+        </div>
+        <div class="modalBody">
+          <ul class="bullets">
+            <li>One player hosts and shares the <b>4-digit Room ID</b>.</li>
+            <li>Everyone joins and sits together (no in-app chat).</li>
+            <li><b>Start Round</b>: each player gets a random word (private). Discuss offline and explain without saying the word.</li>
+            <li><b>Shuffle</b>: words shuffle between players. Now each player guesses (offline) who had their word before shuffle.</li>
+            <li><b>Open Voting</b>: players nominate the previous owner and submit.</li>
+            <li><b>Close Voting</b>: results + scoreboard appear automatically.</li>
+            <li><b>Next Round</b>: start again with a new set of words.</li>
+          </ul>
+          <div class="tiny muted">Tip: Tap Reveal to show your word. Tap again (or press Esc) to hide quickly.</div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="tiny muted">Mobile-first · Single-screen flow · PeerJS P2P</div>
+    </footer>
+  </div>
+
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <!-- <script src="./rtcpeer.js"></script> -->
+  <script>
+  (() => {
+  const $ = (id) => document.getElementById(id);
+
+  const screens = {
+    join: $("screenJoin"),
+    room: $("screenRoom"),
+  };
+
+  const netDot = $("netDot");
+  const netText = $("netText");
+
+  const nameInput = $("nameInput");
+  const roomInput = $("roomInput");
+  const hostBtn = $("hostBtn");
+  const joinBtn = $("joinBtn");
+  const reconnectBtn = $("reconnectBtn");
+
+  const roomCodeEl = $("roomCode");
+  const meNameEl = $("meName");
+  const rolePill = $("rolePill");
+
+  const hostTopControls = $("hostTopControls");
+  const playerTopControls = $("playerTopControls");
+  const hostMainBtn = $("hostMainBtn");
+  const leaveBtn = $("leaveBtn");
+  const leaveBtn2 = $("leaveBtn2");
+
+  const copyRoomBtn = $("copyRoomBtn");
+  const playersBtn = $("playersBtn");
+  const playerCountBadge = $("playerCountBadge");
+
+  const statusLine = $("statusLine");
+  const statusHint = $("statusHint");
+
+  const toggleWordBtn = $("toggleWordBtn");
+  const myWordText = $("myWordText");
+  const myWordSubtitle = $("myWordSubtitle");
+  const myWordTip = $("myWordTip");
+
+  const voteCard = $("voteCard");
+  const voteSubtitle = $("voteSubtitle");
+  const voteInstruction = $("voteInstruction");
+  const voteSelect = $("voteSelect");
+  const submitVoteBtn = $("submitVoteBtn");
+  const voteAfterText = $("voteAfterText");
+
+  const resultsCard = $("resultsCard");
+  const myGuessResult = $("myGuessResult");
+  const myCorrectResult = $("myCorrectResult");
+  const myPointResult = $("myPointResult");
+  const scoreList = $("scoreList");
+
+  const hostControlsCard = $("hostControlsCard");
+  const copyPromptBtn = $("copyPromptBtn");
+  const loadJsonBtn = $("loadJsonBtn");
+  const datasetSummary = $("datasetSummary");
+
+  const playersModal = $("playersModal");
+  const playersCloseBtn = $("playersCloseBtn");
+  const playersList = $("playersList");
+  const playersModalSub = $("playersModalSub");
+
+  const loadModal = $("loadModal");
+  const loadCloseBtn = $("loadCloseBtn");
+  const jsonTextarea = $("jsonTextarea");
+  const applyJsonBtn = $("applyJsonBtn");
+  const cancelJsonBtn = $("cancelJsonBtn");
+  const jsonError = $("jsonError");
+
+  const howBtn = $("howBtn");
+  const howModal = $("howModal");
+  const howCloseBtn = $("howCloseBtn");
+
+  const DEFAULT_WORDS = [
+    "apple","train","doctor","mountain","pizza","laptop","river","football","camera","library",
+    "mirror","candle","raincoat","chocolate","elevator","guitar","wallet","bicycle","airport","telescope",
+    "lantern","sandbox","umbrella","magnet","coconut","notebook","helicopter","popcorn","calendar","backpack",
+    "pillow","snowman","pencil","pumpkin","bottle","sunflower","volcano","sandwich","toothbrush","traffic",
+    "perfume","rainbow","keyboard","lighthouse","pancake","aquarium","binoculars","helmet","parachute","thermometer",
+    "dictionary","snowflake","cupcake","butterfly","stethoscope","flashlight","microscope","skateboard","fireworks","compass",
+    "waterfall","suitcase","headphones","mailbox","windmill","campfire","handshake","calculator","hourglass","trophy",
+    "paintbrush","stopwatch","bookstore","snowboard","necklace","briefcase","raindrop","fountain","chessboard","joystick",
+    "sandcastle","paperclip","pineapple","seashell","blueprint","teacup","origami","harmonica","spaceship","cactus"
+  ];
+
+  const STORAGE = {
+    name: "ws_name",
+    last: "ws_last_room",
+    dataset: "ws_dataset_v1"
+  };
+
+  const STATE = {
+    LOBBY: "LOBBY",
+    DISCUSS: "DISCUSS",
+    SHUFFLED: "SHUFFLED",
+    VOTING: "VOTING",
+    RESULTS: "RESULTS"
+  };
+
+  let peer = null;
+  let isHost = false;
+  let roomId = "";
+  let myId = "";
+  let myName = "";
+  let hostConn = null;
+  let conns = new Map();
+
+  let wordsDataset = {
+    words: [...DEFAULT_WORDS],
+    source: "default"
+  };
+
+  let game = {
+    phase: STATE.LOBBY,
+    round: 0,
+    players: [],
+    scores: {},
+    startAssignments: {},
+    shuffleAssignments: {},
+    prevOwnerByWord: {},
+    voteOpen: false,
+    votes: {},
+    results: {}
+  };
+
+  function setScreen(which){
+    Object.values(screens).forEach(el => el.classList.remove("panel--active"));
+    screens[which].classList.add("panel--active");
+  }
+
+  function setNet(connected, label){
+    netDot.style.background = connected ? "rgba(124,240,193,.85)" : "rgba(255,255,255,.25)";
+    netDot.style.boxShadow = connected ? "0 0 0 4px rgba(124,240,193,.10)" : "0 0 0 4px rgba(255,255,255,.06)";
+    netText.textContent = label;
+  }
+
+  function openModal(backdrop){
+    backdrop.classList.add("modalBackdrop--show");
+    backdrop.setAttribute("aria-hidden","false");
+  }
+  function closeModal(backdrop){
+    backdrop.classList.remove("modalBackdrop--show");
+    backdrop.setAttribute("aria-hidden","true");
+  }
+
+  function safeTrim(s){ return (s||"").toString().trim(); }
+
+  function genRoomId(){
+    const n = Math.floor(1000 + Math.random() * 9000);
+    return String(n);
+  }
+
+  function setRoleUI(){
+    if(isHost){
+      rolePill.textContent = "Host";
+      hostTopControls.style.display = "flex";
+      playerTopControls.style.display = "none";
+      hostControlsCard.classList.remove("hidden");
+    }else{
+      rolePill.textContent = "Player";
+      hostTopControls.style.display = "none";
+      playerTopControls.style.display = "flex";
+      hostControlsCard.classList.add("hidden");
+    }
+  }
+
+  function avatarFromName(n){
+    const t = safeTrim(n);
+    if(!t) return "?";
+    const parts = t.split(/\s+/).filter(Boolean);
+    if(parts.length === 1) return parts[0].slice(0,1).toUpperCase();
+    return (parts[0].slice(0,1) + parts[parts.length-1].slice(0,1)).toUpperCase();
+  }
+
+  function normalizeWords(words){
+    const out = [];
+    const seen = new Set();
+    for(const w of words){
+      const t = safeTrim(w).toLowerCase();
+      if(!t) continue;
+      const clean = t.replace(/\s+/g," ").slice(0,32);
+      if(seen.has(clean)) continue;
+      seen.add(clean);
+      out.push(clean);
+    }
+    return out;
+  }
+
+  function parseDatasetJSON(txt){
+    const raw = JSON.parse(txt);
+    if(raw && Array.isArray(raw.words)){
+      return { words: normalizeWords(raw.words), source: "json" };
+    }
+    if(raw && Array.isArray(raw.categories)){
+      const flat = [];
+      for(const c of raw.categories){
+        if(c && Array.isArray(c.words)) flat.push(...c.words);
+      }
+      return { words: normalizeWords(flat), source: "json" };
+    }
+    if(Array.isArray(raw)){
+      return { words: normalizeWords(raw), source: "json" };
+    }
+    throw new Error("Unsupported JSON format. Use {\"words\":[...]} or {\"categories\":[{\"name\":\"...\",\"words\":[...]}]}");
+  }
+
+  function saveDataset(ds){
+    try{
+      localStorage.setItem(STORAGE.dataset, JSON.stringify(ds));
+    }catch(_){}
+  }
+
+  function loadDataset(){
+    try{
+      const s = localStorage.getItem(STORAGE.dataset);
+      if(!s) return;
+      const ds = JSON.parse(s);
+      if(ds && Array.isArray(ds.words) && ds.words.length >= 10){
+        wordsDataset = { words: normalizeWords(ds.words), source: ds.source || "json" };
+      }
+    }catch(_){}
+  }
+
+  function updateDatasetSummary(){
+    const src = wordsDataset.source === "default" ? "default words (built-in)" : "custom JSON";
+    datasetSummary.textContent = `Dataset: ${src} · ${wordsDataset.words.length} words`;
+  }
+
+  function setHostMainLabel(){
+    if(!isHost) return;
+    const phase = game.phase;
+    let label = "Start Round";
+    if(phase === STATE.LOBBY) label = "Start Round";
+    if(phase === STATE.DISCUSS) label = "Shuffle";
+    if(phase === STATE.SHUFFLED) label = "Open Voting";
+    if(phase === STATE.VOTING) label = "Close Voting";
+    if(phase === STATE.RESULTS) label = "Next Round";
+    hostMainBtn.textContent = label;
+  }
+
+  function setStatus(text, hint){
+    statusLine.textContent = text;
+    statusHint.textContent = hint || "";
+  }
+
+  function setWordUI(phase){
+    if(phase === STATE.LOBBY){
+      toggleWordBtn.disabled = true;
+      toggleWordBtn.textContent = "Reveal";
+      myWordSubtitle.textContent = "Hidden until round starts.";
+      myWordText.textContent = "—";
+      myWordTip.textContent = "Tap Reveal to show. Tap again (or press Esc) to hide quickly.";
+      hideWord();
+      return;
+    }
+    toggleWordBtn.disabled = false;
+    myWordSubtitle.textContent = phase === STATE.DISCUSS ? "Discuss offline and explain without saying it." :
+                                 phase === STATE.SHUFFLED ? "Now guess offline who had it before shuffle." :
+                                 phase === STATE.VOTING ? "Voting is open — nominate the previous owner." :
+                                 "Results shown — check scoreboard.";
+  }
+
+  function setVoteUI(phase){
+    if(phase === STATE.VOTING){
+      voteSubtitle.textContent = "Voting is open.";
+      voteSelect.disabled = false;
+      submitVoteBtn.disabled = false;
+      voteAfterText.textContent = "";
+      return;
+    }
+    if(phase === STATE.RESULTS){
+      voteSubtitle.textContent = "Voting closed.";
+      voteSelect.disabled = true;
+      submitVoteBtn.disabled = true;
+      return;
+    }
+    voteSubtitle.textContent = "Voting is closed.";
+    voteSelect.disabled = true;
+    submitVoteBtn.disabled = true;
+    voteAfterText.textContent = "";
+  }
+
+  function setResultsUI(phase){
+    resultsCard.classList.toggle("hidden", phase !== STATE.RESULTS);
+  }
+
+  function hideWord(){
+    document.body.classList.remove("revealOn");
+    toggleWordBtn.textContent = "Reveal";
+    myWordText.classList.remove("bigWord--reveal");
+    renderMyWord(false);
+  }
+
+  function showWord(){
+    document.body.classList.add("revealOn");
+    toggleWordBtn.textContent = "Hide";
+    myWordText.classList.add("bigWord--reveal");
+    renderMyWord(true);
+  }
+
+  function renderMyWord(reveal){
+    const phase = game.phase;
+    const me = game.players.find(p => p.id === myId);
+    if(!me){
+      myWordText.textContent = "—";
+      return;
+    }
+    let w = "";
+    if(phase === STATE.DISCUSS){
+      w = game.startAssignments[myId] || "";
+    }else if(phase === STATE.SHUFFLED || phase === STATE.VOTING || phase === STATE.RESULTS){
+      w = game.shuffleAssignments[myId] || "";
+    }
+    if(!w){
+      myWordText.textContent = "—";
+      return;
+    }
+    myWordText.textContent = reveal ? w : "—";
+  }
+
+  function renderPlayersList(){
+    playersList.innerHTML = "";
+    const players = [...game.players].sort((a,b)=> (a.name||"").localeCompare(b.name||""));
+    playersModalSub.textContent = `${players.length} player${players.length===1?"":"s"} connected`;
+    for(const p of players){
+      const row = document.createElement("div");
+      row.className = "row";
+      const left = document.createElement("div");
+      left.className = "row__left";
+      const av = document.createElement("div");
+      av.className = "avatar";
+      av.textContent = avatarFromName(p.name);
+      const meta = document.createElement("div");
+      meta.style.minWidth = "0";
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = p.name || "Player";
+      const sub = document.createElement("div");
+      sub.className = "sub";
+      sub.textContent = p.isHost ? "Host" : "Player";
+      meta.appendChild(name);
+      meta.appendChild(sub);
+      left.appendChild(av);
+      left.appendChild(meta);
+
+      const right = document.createElement("div");
+      right.className = "kpi";
+      const score = game.scores[p.id] ?? 0;
+      right.textContent = `+${score}`;
+
+      row.appendChild(left);
+      row.appendChild(right);
+      playersList.appendChild(row);
+    }
+
+    playerCountBadge.textContent = String(game.players.length);
+    fillVoteSelect();
+  }
+
+  function fillVoteSelect(){
+    const me = game.players.find(p => p.id === myId);
+    const players = [...game.players].filter(p => p.id !== myId);
+    voteSelect.innerHTML = "";
+    const opt0 = document.createElement("option");
+    opt0.value = "";
+    opt0.textContent = "Select a player…";
+    voteSelect.appendChild(opt0);
+
+    players.sort((a,b)=> (a.name||"").localeCompare(b.name||"")).forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.name || "Player";
+      voteSelect.appendChild(opt);
+    });
+
+    if(me && game.votes[myId]){
+      voteSelect.value = game.votes[myId];
+    }else{
+      voteSelect.value = "";
+    }
+  }
+
+  function renderScoreboard(){
+    scoreList.innerHTML = "";
+    const players = [...game.players].sort((a,b)=> (game.scores[b.id]??0) - (game.scores[a.id]??0) || (a.name||"").localeCompare(b.name||""));
+    for(const p of players){
+      const row = document.createElement("div");
+      row.className = "row";
+      const left = document.createElement("div");
+      left.className = "row__left";
+      const av = document.createElement("div");
+      av.className = "avatar";
+      av.textContent = avatarFromName(p.name);
+      const meta = document.createElement("div");
+      meta.style.minWidth = "0";
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = p.name || "Player";
+      const sub = document.createElement("div");
+      sub.className = "sub";
+      sub.textContent = p.isHost ? "Host" : "Player";
+      meta.appendChild(name);
+      meta.appendChild(sub);
+      left.appendChild(av);
+      left.appendChild(meta);
+
+      const right = document.createElement("div");
+      right.className = "kpi";
+      right.textContent = String(game.scores[p.id] ?? 0);
+
+      row.appendChild(left);
+      row.appendChild(right);
+      scoreList.appendChild(row);
+    }
+  }
+
+  function renderMyResults(){
+    const res = game.results[myId] || null;
+    if(!res){
+      myGuessResult.textContent = "—";
+      myCorrectResult.textContent = "—";
+      myPointResult.textContent = "—";
+      return;
+    }
+    const guessName = (game.players.find(p => p.id === res.guess)?.name) || "—";
+    const correctName = (game.players.find(p => p.id === res.correct)?.name) || "—";
+    myGuessResult.textContent = guessName;
+    myCorrectResult.textContent = correctName;
+    myPointResult.textContent = res.point ? "+1" : "0";
+  }
+
+  function updateUIFromGame(){
+    setHostMainLabel();
+
+    const phase = game.phase;
+    if(phase === STATE.LOBBY){
+      setStatus("Waiting for host…", "Host will start the round. You’ll receive a secret word.");
+      setWordUI(phase);
+      setVoteUI(phase);
+      setResultsUI(phase);
+    }
+    if(phase === STATE.DISCUSS){
+      setStatus(`Round ${game.round} — discuss offline`, "Explain your word without saying it. When ready, host taps Shuffle.");
+      setWordUI(phase);
+      setVoteUI(phase);
+      setResultsUI(phase);
+    }
+    if(phase === STATE.SHUFFLED){
+      setStatus(`Round ${game.round} — shuffled`, "Look at your new word and guess (offline) who had it before shuffle.");
+      setWordUI(phase);
+      setVoteUI(phase);
+      setResultsUI(phase);
+    }
+    if(phase === STATE.VOTING){
+      setStatus(`Round ${game.round} — voting open`, "Nominate who had your word before shuffle and submit.");
+      setWordUI(phase);
+      setVoteUI(phase);
+      setResultsUI(phase);
+    }
+    if(phase === STATE.RESULTS){
+      setStatus(`Round ${game.round} — results`, "Scores updated. Host can start the next round.");
+      setWordUI(phase);
+      setVoteUI(phase);
+      setResultsUI(phase);
+    }
+
+    toggleWordBtn.disabled = (phase === STATE.LOBBY);
+    renderPlayersList();
+    renderScoreboard();
+    if(document.body.classList.contains("revealOn")){
+      renderMyWord(true);
+    }else{
+      renderMyWord(false);
+    }
+
+    const canVote = (phase === STATE.VOTING);
+    voteCard.classList.remove("hidden");
+    voteInstruction.textContent = canVote
+      ? "Select who you think had your current word before the shuffle."
+      : "Voting is closed.";
+    submitVoteBtn.disabled = !canVote;
+    voteSelect.disabled = !canVote;
+
+    if(phase === STATE.RESULTS){
+      renderMyResults();
+    }
+  }
+
+  function randomPickUnique(arr, count){
+    const a = [...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a.slice(0, count);
+  }
+
+  function shuffledAssignments(players, words){
+    const ids = players.map(p=>p.id);
+    const w = [...words];
+    for(let i=w.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [w[i],w[j]] = [w[j],w[i]];
+    }
+    const map = {};
+    ids.forEach((id, idx)=> map[id] = w[idx]);
+    return map;
+  }
+
+  function derangedOrRandomShuffle(players, words, startAssign){
+    const ids = players.map(p=>p.id);
+    const w = words.map(x=>x);
+    for(let attempt=0; attempt<20; attempt++){
+      for(let i=w.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [w[i],w[j]] = [w[j],w[i]];
+      }
+      const map = {};
+      let same = 0;
+      ids.forEach((id, idx)=>{
+        map[id] = w[idx];
+        if(map[id] === startAssign[id]) same++;
+      });
+      if(same < Math.max(1, Math.floor(ids.length*0.35))) return map;
+    }
+    const map = {};
+    ids.forEach((id, idx)=> map[id] = w[idx]);
+    return map;
+  }
+
+  function computePrevOwnerByWord(startAssign){
+    const out = {};
+    for(const [pid, word] of Object.entries(startAssign)){
+      out[word] = pid;
+    }
+    return out;
+  }
+
+  function hostStartRound(){
+    if(game.players.length < 2){
+      toastStatus("Need at least 2 players to start.");
+      return;
+    }
+    const needed = game.players.length;
+    const pool = wordsDataset.words.length >= needed ? wordsDataset.words : [...DEFAULT_WORDS];
+    const chosen = randomPickUnique(pool, needed);
+
+    game.round = (game.round || 0) + 1;
+    game.phase = STATE.DISCUSS;
+    game.votes = {};
+    game.results = {};
+    game.voteOpen = false;
+
+    if(!game.scores) game.scores = {};
+    for(const p of game.players){
+      if(game.scores[p.id] == null) game.scores[p.id] = 0;
+    }
+
+    const startAssign = shuffledAssignments(game.players, chosen);
+    game.startAssignments = startAssign;
+    game.prevOwnerByWord = computePrevOwnerByWord(startAssign);
+
+    game.shuffleAssignments = {};
+    updateUIFromGame();
+    hostBroadcastState();
+  }
+
+  function hostShuffle(){
+    const needed = game.players.length;
+    const startWords = Object.values(game.startAssignments || {});
+    if(startWords.length !== needed){
+      toastStatus("Start round first.");
+      return;
+    }
+    const shuffleAssign = derangedOrRandomShuffle(game.players, startWords, game.startAssignments);
+    game.shuffleAssignments = shuffleAssign;
+    game.phase = STATE.SHUFFLED;
+    game.votes = {};
+    game.results = {};
+    game.voteOpen = false;
+    updateUIFromGame();
+    hostBroadcastState();
+  }
+
+  function hostOpenVoting(){
+    game.phase = STATE.VOTING;
+    game.voteOpen = true;
+    updateUIFromGame();
+    hostBroadcastState();
+  }
+
+  function hostCloseVoting(){
+    game.phase = STATE.RESULTS;
+    game.voteOpen = false;
+
+    const res = {};
+    for(const p of game.players){
+      const pid = p.id;
+      const currentWord = game.shuffleAssignments[pid];
+      const correctPrev = game.prevOwnerByWord[currentWord] || null;
+      const guess = game.votes[pid] || null;
+      const point = !!(guess && correctPrev && guess === correctPrev);
+      res[pid] = { guess, correct: correctPrev, point };
+      if(point) game.scores[pid] = (game.scores[pid] ?? 0) + 1;
+    }
+    game.results = res;
+
+    updateUIFromGame();
+    hostBroadcastState();
+  }
+
+  function hostNextRound(){
+    game.phase = STATE.LOBBY;
+    game.startAssignments = {};
+    game.shuffleAssignments = {};
+    game.prevOwnerByWord = {};
+    game.votes = {};
+    game.results = {};
+    game.voteOpen = false;
+    updateUIFromGame();
+    hostBroadcastState();
+  }
+
+  function toastStatus(msg){
+    setStatus(msg, statusHint.textContent);
+    setTimeout(()=> updateUIFromGame(), 1200);
+  }
+
+  function msg(type, payload){
+    return { type, payload, t: Date.now() };
+  }
+
+  function sendToHost(type, payload){
+    if(!hostConn || hostConn.open !== true) return;
+    hostConn.send(msg(type, payload));
+  }
+
+  function hostBroadcastState(){
+    const payload = {
+      game,
+      datasetInfo: { source: wordsDataset.source, count: wordsDataset.words.length }
+    };
+    for(const c of conns.values()){
+      if(c && c.open) c.send(msg("STATE", payload));
+    }
+  }
+
+  function attachConnHandlers(conn, asHostSide){
+    conn.on("data", (data) => {
+      if(!data || typeof data.type !== "string") return;
+      if(asHostSide){
+        handleHostIncoming(conn, data);
+      }else{
+        handleClientIncoming(data);
+      }
+    });
+    conn.on("open", () => {
+      setNet(true, isHost ? `Hosting ${roomId}` : `Connected to host ${roomId}`);
+      if(asHostSide){
+        conn.send(msg("WELCOME", { roomId, hostId: myId }));
+        conn.send(msg("STATE", { game, datasetInfo: { source: wordsDataset.source, count: wordsDataset.words.length } }));
+      }else{
+        sendToHost("HELLO", { id: myId, name: myName });
+      }
+      updateUIFromGame();
+    });
+    conn.on("close", () => {
+      if(asHostSide){
+        const gone = [...conns.entries()].find(([_,c]) => c === conn);
+        if(gone){
+          const pid = gone[0];
+          conns.delete(pid);
+          game.players = game.players.filter(p => p.id !== pid);
+          delete game.scores[pid];
+          delete game.startAssignments[pid];
+          delete game.shuffleAssignments[pid];
+          delete game.votes[pid];
+          delete game.results[pid];
+          updateUIFromGame();
+          hostBroadcastState();
+        }
+      }else{
+        setNet(false, "Disconnected");
+        setStatus("Disconnected from host.", "Try Reconnect or Join again.");
+        setScreen("join");
+      }
+      updateUIFromGame();
+    });
+    conn.on("error", () => {
+      if(!asHostSide){
+        setNet(false, "Connection error");
+      }
+    });
+  }
+
+  function handleHostIncoming(conn, data){
+    const { type, payload } = data;
+
+    if(type === "HELLO"){
+      const pid = payload?.id;
+      const pname = safeTrim(payload?.name) || "Player";
+      if(!pid) return;
+      conns.set(pid, conn);
+
+      const exists = game.players.some(p => p.id === pid);
+      if(!exists){
+        game.players.push({ id: pid, name: pname, isHost: false });
+        if(game.scores[pid] == null) game.scores[pid] = 0;
+      }else{
+        const p = game.players.find(x => x.id === pid);
+        if(p) p.name = pname;
+      }
+
+      updateUIFromGame();
+      hostBroadcastState();
+      return;
+    }
+
+    if(type === "VOTE_SUBMIT"){
+      if(game.phase !== STATE.VOTING) return;
+      const pid = payload?.playerId;
+      const guess = payload?.guessId;
+      if(!pid || !guess) return;
+      if(!game.players.some(p => p.id === pid)) return;
+      if(!game.players.some(p => p.id === guess)) return;
+      game.votes[pid] = guess;
+      updateUIFromGame();
+      hostBroadcastState();
+      return;
+    }
+
+    if(type === "HOST_ACTION"){
+      const action = payload?.action;
+      if(action === "START_ROUND") hostStartRound();
+      if(action === "SHUFFLE") hostShuffle();
+      if(action === "OPEN_VOTING") hostOpenVoting();
+      if(action === "CLOSE_VOTING") hostCloseVoting();
+      if(action === "NEXT_ROUND") hostNextRound();
+      return;
+    }
+
+    if(type === "HOST_DATASET"){
+      const ds = payload?.dataset;
+      if(ds && Array.isArray(ds.words) && ds.words.length >= 10){
+        wordsDataset = { words: normalizeWords(ds.words), source: "json" };
+        saveDataset(wordsDataset);
+        updateDatasetSummary();
+        hostBroadcastState();
+      }
+      return;
+    }
+  }
+
+  function handleClientIncoming(data){
+    const { type, payload } = data;
+
+    if(type === "WELCOME"){
+      return;
+    }
+
+    if(type === "STATE"){
+      if(payload?.game){
+        game = payload.game;
+        updateUIFromGame();
+      }
+      if(payload?.datasetInfo){
+        const src = payload.datasetInfo.source || "default";
+        const cnt = payload.datasetInfo.count || 0;
+        datasetSummary.textContent = `Dataset: ${src === "default" ? "default words (built-in)" : "custom JSON"} · ${cnt} words`;
+      }
+      return;
+    }
+  }
+
+  function destroyPeer(){
+    try{
+      if(peer){
+        peer.destroy();
+      }
+    }catch(_){}
+    peer = null;
+    hostConn = null;
+    conns.clear();
+  }
+
+  function createPeer(id){
+    return new Peer(id, {
+      debug: 0
+    });
+  }
+
+  function hostRoom(){
+    myName = safeTrim(nameInput.value);
+    if(!myName){
+      toastOnJoin("Enter your name first.");
+      return;
+    }
+    localStorage.setItem(STORAGE.name, myName);
+
+    isHost = true;
+    roomId = genRoomId();
+    myId = roomId;
+
+    destroyPeer();
+    setNet(false, "Connecting…");
+
+    peer = createPeer(roomId);
+
+    peer.on("open", (id) => {
+      myId = id;
+      setNet(true, `Hosting ${roomId}`);
+      localStorage.setItem(STORAGE.last, roomId);
+
+      game = {
+        phase: STATE.LOBBY,
+        round: 0,
+        players: [{ id: myId, name: myName, isHost: true }],
+        scores: { [myId]: 0 },
+        startAssignments: {},
+        shuffleAssignments: {},
+        prevOwnerByWord: {},
+        voteOpen: false,
+        votes: {},
+        results: {}
+      };
+
+      roomCodeEl.textContent = roomId;
+      meNameEl.textContent = myName;
+      setRoleUI();
+      setScreen("room");
+      updateDatasetSummary();
+      updateUIFromGame();
+    });
+
+    peer.on("connection", (conn) => {
+      attachConnHandlers(conn, true);
+    });
+
+    peer.on("error", (err) => {
+      setNet(false, "Host error");
+      setScreen("join");
+      toastOnJoin("Host failed. Try again.");
+    });
+  }
+
+  function joinRoom(targetRoom){
+    myName = safeTrim(nameInput.value);
+    if(!myName){
+      toastOnJoin("Enter your name first.");
+      return;
+    }
+    localStorage.setItem(STORAGE.name, myName);
+
+    const rid = safeTrim(targetRoom || roomInput.value);
+    if(!/^\d{4}$/.test(rid)){
+      toastOnJoin("Enter a valid 4-digit Room ID.");
+      return;
+    }
+
+    isHost = false;
+    roomId = rid;
+
+    destroyPeer();
+    setNet(false, "Connecting…");
+
+    peer = createPeer(undefined);
+
+    peer.on("open", (id) => {
+      myId = id;
+      localStorage.setItem(STORAGE.last, roomId);
+
+      hostConn = peer.connect(roomId, { reliable: true });
+      attachConnHandlers(hostConn, false);
+
+      roomCodeEl.textContent = roomId;
+      meNameEl.textContent = myName;
+      setRoleUI();
+      setScreen("room");
+      updateDatasetSummary();
+      updateUIFromGame();
+    });
+
+    peer.on("error", () => {
+      setNet(false, "Join error");
+      setScreen("join");
+      toastOnJoin("Join failed. Check Room ID and try again.");
+    });
+  }
+
+  function leaveRoom(){
+    destroyPeer();
+    setNet(false, "Not connected");
+    setScreen("join");
+  }
+
+  function toastOnJoin(msg){
+    const old = netText.textContent;
+    netText.textContent = msg;
+    setTimeout(()=> { netText.textContent = old; }, 1400);
+  }
+
+  function copyText(text){
+    if(!text) return;
+    navigator.clipboard?.writeText(text).catch(()=>{});
+  }
+
+  function buildChatGPTPrompt(){
+    return [
+      "Create a JSON dataset for a party word game.",
+      "Return ONLY valid JSON.",
+      "",
+      "Format A (simple):",
+      "{\"words\":[\"apple\",\"train\",\"doctor\",\"mountain\",\"pizza\"]}",
+      "",
+      "Format B (categories):",
+      "{\"categories\":[{\"name\":\"Food\",\"words\":[\"dosa\",\"pizza\",\"biryani\"]},{\"name\":\"Objects\",\"words\":[\"camera\",\"laptop\",\"compass\"]}]}",
+      "",
+      "Rules:",
+      "- Include at least 80 unique, easy-to-explain words.",
+      "- No profanity, no very long phrases.",
+      "- Use simple lowercase words."
+    ].join("\n");
+  }
+
+  function hostAction(action){
+    if(!isHost) return;
+    handleHostIncoming(null, msg("HOST_ACTION", { action }));
+    hostBroadcastState();
+  }
+
+  function onHostMainClick(){
+    if(!isHost) return;
+    const phase = game.phase;
+    if(phase === STATE.LOBBY) hostAction("START_ROUND");
+    else if(phase === STATE.DISCUSS) hostAction("SHUFFLE");
+    else if(phase === STATE.SHUFFLED) hostAction("OPEN_VOTING");
+    else if(phase === STATE.VOTING) hostAction("CLOSE_VOTING");
+    else if(phase === STATE.RESULTS) hostAction("NEXT_ROUND");
+  }
+
+  function onSubmitVote(){
+    if(game.phase !== STATE.VOTING) return;
+    const guessId = voteSelect.value;
+    if(!guessId){
+      voteAfterText.textContent = "Pick a player first.";
+      return;
+    }
+    voteAfterText.textContent = "Submitted ✅";
+    sendToHost("VOTE_SUBMIT", { playerId: myId, guessId });
+  }
+
+  function applyDatasetFromModal(){
+    jsonError.textContent = "";
+    try{
+      const ds = parseDatasetJSON(jsonTextarea.value);
+      if(ds.words.length < 10) throw new Error("Need at least 10 words.");
+      wordsDataset = ds;
+      saveDataset(wordsDataset);
+      updateDatasetSummary();
+      if(isHost){
+        for(const c of conns.values()){
+          if(c && c.open) c.send(msg("STATE", { game, datasetInfo: { source: wordsDataset.source, count: wordsDataset.words.length } }));
+        }
+      }
+      closeModal(loadModal);
+      jsonTextarea.value = "";
+      if(isHost){
+        for(const c of conns.values()){
+          if(c && c.open) c.send(msg("HOST_DATASET", { dataset: { words: wordsDataset.words } }));
+        }
+      }else{
+        sendToHost("HOST_DATASET", { dataset: { words: wordsDataset.words } });
+      }
+    }catch(e){
+      jsonError.textContent = String(e?.message || e);
+    }
+  }
+
+  function initUI(){
+    loadDataset();
+    updateDatasetSummary();
+
+    nameInput.value = localStorage.getItem(STORAGE.name) || "";
+    roomInput.value = "";
+
+    hostBtn.addEventListener("click", hostRoom);
+    joinBtn.addEventListener("click", () => joinRoom());
+    reconnectBtn.addEventListener("click", () => {
+      const last = localStorage.getItem(STORAGE.last) || "";
+      if(/^\d{4}$/.test(last)){
+        roomInput.value = last;
+        joinRoom(last);
+      }else{
+        toastOnJoin("No previous room found.");
+      }
+    });
+
+    hostMainBtn.addEventListener("click", onHostMainClick);
+
+    leaveBtn.addEventListener("click", leaveRoom);
+    leaveBtn2.addEventListener("click", leaveRoom);
+
+    copyRoomBtn.addEventListener("click", () => copyText(roomCodeEl.textContent));
+    playersBtn.addEventListener("click", () => {
+      renderPlayersList();
+      openModal(playersModal);
+    });
+    playersCloseBtn.addEventListener("click", () => closeModal(playersModal));
+    playersModal.addEventListener("click", (e) => { if(e.target === playersModal) closeModal(playersModal); });
+
+    toggleWordBtn.addEventListener("click", () => {
+      if(toggleWordBtn.disabled) return;
+      if(document.body.classList.contains("revealOn")) hideWord();
+      else showWord();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if(e.key === "Escape"){
+        hideWord();
+        closeModal(playersModal);
+        closeModal(loadModal);
+        closeModal(howModal);
+      }
+    });
+
+    submitVoteBtn.addEventListener("click", onSubmitVote);
+
+    copyPromptBtn.addEventListener("click", () => {
+      copyText(buildChatGPTPrompt());
+      datasetSummary.textContent = `${datasetSummary.textContent} · Prompt copied`;
+      setTimeout(updateDatasetSummary, 1100);
+    });
+
+    loadJsonBtn.addEventListener("click", () => {
+      jsonError.textContent = "";
+      openModal(loadModal);
+    });
+
+    loadCloseBtn.addEventListener("click", () => closeModal(loadModal));
+    cancelJsonBtn.addEventListener("click", () => closeModal(loadModal));
+    applyJsonBtn.addEventListener("click", applyDatasetFromModal);
+    loadModal.addEventListener("click", (e) => { if(e.target === loadModal) closeModal(loadModal); });
+
+    howBtn.addEventListener("click", () => openModal(howModal));
+    howCloseBtn.addEventListener("click", () => closeModal(howModal));
+    howModal.addEventListener("click", (e) => { if(e.target === howModal) closeModal(howModal); });
+
+    setNet(false, "Not connected");
+    setScreen("join");
+  }
+
+  initUI();
+})();
+
+  </script>
+</body>
+</html>
